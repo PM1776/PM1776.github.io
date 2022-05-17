@@ -1,0 +1,13 @@
+{
+    // Enables/Disables the coloring of the brackets themselves
+    "editor.bracketPairColorization.enabled": false, 
+
+    // Enables/Disables the highlighting of the bracket-pair guides
+    "editor.guides.highlightActiveBracketPair": false,
+    "editor.guides.highlightActiveIndentation": false,
+
+    // Enables/Disables the Coloring of the bracket-pair guides.
+    "editor.guides.bracketPairs": false,
+    "editor.guides.indentation": false
+
+}
