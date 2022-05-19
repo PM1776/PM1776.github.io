@@ -2,12 +2,57 @@ html, body {
     height: 100%;
     margin: 0;
 }
-body {
-    
-}
+
 canvas {
     border: 2px solid #000000;
     margin-top: 10px;
     margin-left: 10px;
     box-sizing: border-box;
+    cursor: pointer;
+}
+
+#legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 100%;
+    margin: auto;
+    background-color: #f6f2f2;
+}
+
+#legend div {
+    margin: 0px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.legendColor {
+    border: 4px solid white;
+    width: 30px;
+    height: 30px;
+
+}
+
+.click {
+    background: url("../clickIcon.png");
+    background-size: cover;
+}
+
+.drag {
+    background: url("../dragIcon.png");
+    background-size: cover;
+}
+
+.yellow {
+    background-color: yellow;
+}
+
+.blue {
+    background-color: blue;
+}
+
+.red {
+    background-color: red;
 }

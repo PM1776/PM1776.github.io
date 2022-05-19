@@ -109,7 +109,8 @@ function moveVertexToTarget(vertex, target, speed, axis, changeColor) {
     Object.defineProperty(vertex, axis, {value: axisVal});
     
     let color = (changeColor) ? changeColor : "0, 0, 0";
-    drawVertex(vertex, 'rgb(' + color + ', .5)', GRAD_BY_X);
+    const GRAD = (axis === 'y') ? GRAD_BY_X : GRAD_BY_Y;
+    drawVertex(vertex, 'rgb(' + color + ', .5)', GRAD);
 
     if (axisVal === target) {
         moved[vertex.name] = true;

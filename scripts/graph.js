@@ -205,7 +205,7 @@ export class Graph {
     }
 
     getVertices () {
-        return [...this.neighbors.keys()];
+        return JSON.parse(JSON.stringify([...this.neighbors.keys()]));
     }
 
     getNeighbors () {

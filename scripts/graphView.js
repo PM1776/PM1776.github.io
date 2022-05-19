@@ -3,10 +3,11 @@ import { Graph } from './graph.js';
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext("2d");
 
-const POINT_RADIUS = 5;
+const POINT_RADIUS = (window.mobileCheck) ? 10 : 5;
 const VIEW_CHANGES = 1000;
 const GRAD_BY_X = 1;
 const GRAD_BY_Y = 2;
+const GRAD_TO_VERTEX = .93;
 
 /**
  * Functions to draw the graph on a canvas with an id of 'graphView.'
@@ -26,6 +27,38 @@ function checkIfGraph (graph) {
 
 function checkIfOnBorder (point) {
     //if (point.x >)
+}
+
+function clear() {
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+}
+
+function resizeAnim(targetX, targetY) {
+    let canvasDoubleW = 0.0, canvasDoubleH = 0.0; // stores canvas dimensions in doubles to be more precise
+
+    return new Promise(resolve => {
+        let resize = () => {
+
+            canvasDoubleW += (targetX - canvas.width) * .15;
+            canvasDoubleH += (targetY - canvas.height) * .15;
+            console.log("target: " + targetX + ", " + targetY);
+
+            canvas.width = canvasDoubleW;
+            canvas.height = canvasDoubleH;
+            
+            if (canvas.width < targetX || canvas.height < targetY) {
+                requestAnimationFrame(resize);
+            } else {
+                resolve();
+            }
+        }
+        requestAnimationFrame(resize);
+    });
+}
+
+function resizeInstantly (targetX, targetY) {
+    canvas.width = targetX;
+    canvas.height = targetY;
 }
 
 function renderNewVertex(v, graph) {
@@ -49,8 +82,6 @@ function renderRemoveVertex(vIndex, graph) {
     let neighbors = graph.getNeighbors().get(v1);
 
     graph.removeVertex(v1);
-    
-    //drawGraph(graph, [v1], graph.getNeighbors().get(v1).map((val) => [v1, val]));
 
     for (let v2 of neighbors) {
         // draws them in red
@@ -66,13 +97,10 @@ function renderRemoveVertex(vIndex, graph) {
     }, VIEW_CHANGES);
 }
 
-function swapVertices(index1, index2, graph) {
-    checkIfGraph(graph);
-}
-
 //updateVertexWithoutEdges()
 
 function drawVertex(v, color = 'black', gradient) {
+
     ctx.lineWidth = POINT_RADIUS * 2;
     ctx.lineCap = "round";
     ctx.strokeStyle = color;
@@ -82,8 +110,8 @@ function drawVertex(v, color = 'black', gradient) {
     ctx.stroke();
 
     if (gradient === GRAD_BY_X) {
-            
-        var lingrad2 = ctx.createLinearGradient(0, v.y, v.x * .93, v.y);
+
+        var lingrad2 = ctx.createLinearGradient(0, v.y, v.x * GRAD_TO_VERTEX, v.y);
         lingrad2.addColorStop(0, color);
         lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
@@ -92,11 +120,15 @@ function drawVertex(v, color = 'black', gradient) {
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(0, v.y);
-        ctx.lineTo(v.x * .93, v.y);
+        ctx.lineTo(v.x * GRAD_TO_VERTEX, v.y);
         ctx.stroke();
 
     } else if (gradient === GRAD_BY_Y) {
-        var lingrad2 = ctx.createLinearGradient(v.x, 0, v.x, v.y * .93);
+
+        // y grad goes to just above the vertex from the full canvas height
+        const GRAD_TO_VERTEX_INVERTED = 2 - GRAD_TO_VERTEX; 
+
+        var lingrad2 = ctx.createLinearGradient(v.x, canvas.height, v.x, v.y * GRAD_TO_VERTEX_INVERTED);
         lingrad2.addColorStop(0, color);
         lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
@@ -104,8 +136,8 @@ function drawVertex(v, color = 'black', gradient) {
 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(v.x, 0);
-        ctx.lineTo(v.x, v.y * .93);
+        ctx.moveTo(v.x, canvas.height);
+        ctx.lineTo(v.x, v.y * GRAD_TO_VERTEX_INVERTED);
         ctx.stroke();
     }
 }
@@ -127,6 +159,14 @@ function drawVertices (vertices, gradient, clear = true) {
     }    
 }
 
+/**
+ * 
+ * @param {*} v1 
+ * @param {*} v2 
+ * @param {*} color 
+ * @param {*} verticesColor the color to draw the vertices of the incident edge. It is by default
+ *      set to <b>color</b>, with a value of 'null' to not render them.
+ */
 function drawEdge (v1, v2, color = 'black', verticesColor = color) {
     ctx.lineWidth = 1;
     ctx.strokeStyle = color;
@@ -136,7 +176,7 @@ function drawEdge (v1, v2, color = 'black', verticesColor = color) {
     ctx.stroke();
 
     // redraws the vertices the edge is incident of
-    if (verticesColor !== undefined) {
+    if (verticesColor !== null) {
         drawVertex(v1, verticesColor);
         drawVertex(v2, verticesColor);
     }
@@ -191,5 +231,5 @@ function drawGraph (graph, excludingVs = true, excludingEs) {
 }
 
 export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y,
-    renderNewVertex, renderNewEdge, renderRemoveVertex, 
+    clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawGraph };
