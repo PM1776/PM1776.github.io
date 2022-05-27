@@ -1,0 +1,108 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.whiteText {
+    color: white;
+}
+
+/* reformat some bootstrap elements */
+.dropdown {
+    display: grid;
+}
+.dropdown-menu {
+    top: 100%;
+}
+
+#graphView {
+    box-sizing: border-box;
+}
+
+#canvasContainer {
+    position: relative;
+    margin-top: 10px;
+    margin-left: 10px;
+    /* border: 2px solid #000000;*/
+}
+
+canvas {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 100%;
+    margin: auto;
+    background-color: #f6f2f2;
+}
+
+#legend div {
+    margin: 0px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
+}
+
+.legendItem {
+    border: 4px solid white;
+    width: 30px;
+    height: 30px;
+}
+
+.click {
+    background: url("../clickIcon.png");
+    background-size: cover;
+}
+
+.doubleClick {
+    background: url("../doubleClickIcon.png");
+    background-size: cover;
+}
+
+.rightClick {
+    background: url("../rightClickIcon.png");
+    background-size: cover;
+}
+
+.drag {
+    background: url("../dragIcon.png");
+    background-size: cover;
+}
+
+.yellow {
+    background-color: yellow;
+}
+
+.blue {
+    background-color: blue;
+}
+
+.red {
+    background-color: red;
+}
+
+.green {
+    background-color: rgb(0, 255, 0);
+}
+
+.darkGreen {
+    background-color: green;
+}
+
+.blue-yellow {
+    background: linear-gradient(135deg, blue 50%, yellow 50%);
+}
