@@ -224,7 +224,7 @@ function defaultLegend () {
     document.getElementById('legend').innerHTML = '';
     createLegendItem('click', "Add Point");
     createLegendItem('drag', "Add Edge");
-    createLegendItem('doubleClick', "BFS From A Vertex"); 
+    createLegendItem('doubleClick', "BFS From A Point"); 
     createLegendItem('rightClick', "Remove Point");
 }
 
@@ -259,6 +259,6 @@ function collapseNavbarToggle () {
 }
 
 document.getElementsByClassName('navbar-brand')[0].addEventListener("click", () => {
-    var audio = new Audio('a-whole-new-world-cropped.mp3');
+    var audio = new Audio('src/a-whole-new-world-cropped.mp3');
     audio.play();
 });
