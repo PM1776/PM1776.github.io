@@ -7,9 +7,16 @@ html, body {
     color: white;
 }
 
-/* reformat some bootstrap elements */
+.center {
+    text-align: center;
+}
+
+input[type="range"] {
+    color: grey;
+}
+
 .dropdown {
-    display: grid;
+    display: contents;
 }
 .dropdown-menu {
     top: 100%;

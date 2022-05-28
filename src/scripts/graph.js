@@ -133,7 +133,6 @@ export class Graph {
 
             if (this.neighbors.has(u)) {
                 this.neighbors.get(u).push(v);
-                this.neighbors.get(v).push(u);
                 return true;
             }
 
@@ -152,7 +151,6 @@ export class Graph {
             let v2 = this.vertexAt(v);
 
             this.neighbors.get(v1).push(v2);
-            this.neighbors.get(v2).push(v1);
 
             return true;
         }

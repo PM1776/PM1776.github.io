@@ -20,9 +20,9 @@ var disabled;
 let addingEdge;
 
 let CANVAS_OFFSET;
-const GENERATED_POINTS = (window.mobileCheck) ? 5 : 20;
+const GENERATE_POINTS = (window.mobileCheck) ? 5 : 20;
 
-var newPointName = GENERATED_POINTS;
+var newPointName = GENERATE_POINTS;
 
 window.mobileCheck = function() {
     let check = false;
@@ -56,7 +56,44 @@ window.addEventListener("load", async (e) => {
 
     // values of navBar elements already set to disabled
     resize(e);
-    generateRandomPoints();
+
+    // map of the US
+    let vertices = [{name: "Seattle", x: 75, y: 50},
+            {name: "San Francisco", x: 50, y: 210},
+            {name: "Los Angeles", x:75, y:275},
+            {name: "Denver", x:275, y:175},
+            {name: "Kansas City", x:400, y:245},
+            {name: "Chicago", x:450, y:100},
+            {name: "Boston", x:700, y:80},
+            {name: "New York", x:675, y:120},
+            {name: "Atlanta", x:575, y:295},
+            {name: "Miami", x:600, y:400},
+            {name: "Dallas", x:408, y:325},
+            {name: "Houston", x:450, y:360},
+            {name: "Caribbean", x:700, y:350},
+            {name: "Caribbean2", x:780, y:375},
+            {name: "Island1", x:825, y:340},
+            {name: "Island2", x:870, y:370},
+        ];
+
+        let edges = [
+            [0, 1], [0, 3], [0, 5], 
+            [1, 2], [1, 3],
+            [2, 3], [2, 4], [2, 10],
+            [3, 4], [3, 5],
+            [4, 5], [4, 7], [4, 8], [4, 10],
+            [5, 6], [5, 7],
+            [6, 7], 
+            [7, 8],
+            [8, 9], [8, 10], [8, 11],
+            [9, 11],
+            [10, 11],
+            [12, 13]
+        ];
+
+    graph = new Graph(vertices, edges);
+    graph.print();
+    drawGraph(graph, true, 2);
     enableButtons();
 });
 
@@ -81,7 +118,7 @@ function resize(e) {
 }
 
 function generateRandomPoints() {
-    var vertices = new Array(GENERATED_POINTS);
+    var vertices = new Array(GENERATE_POINTS);
 
     for (let i = 0; i < vertices.length; i++) {
         vertices[i] = {name: i, x: Math.floor(Math.random() * canvas.width), 
@@ -90,7 +127,7 @@ function generateRandomPoints() {
     let edges = [[6, 3], [1, 8], [2, 19], [11, 7], [3, 1], [6, 11], [8, 19], [7, 2]];
     graph = new Graph(vertices, edges);
 
-    drawGraph(graph, true, 2);
+    drawGraph(graph, true, 1);
 }
 
 function addRemove(e) {

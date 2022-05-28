@@ -319,7 +319,7 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
         for (let neighbor of neighbors) {
 
             // prevents duplicate drawings of an edge
-            if (parseInt(vertex.name) < parseInt(neighbor.name)) {
+            //if (parseInt(vertex.name) < parseInt(neighbor.name)) {
                 switch (edgeDrawing) {
                     case 1:
                         drawDirectionalEdge(vertex, neighbor); break;
@@ -328,7 +328,7 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
                     default:
                         drawEdge(vertex, neighbor);
                 }
-            }
+            //}
         }
         drawVertex(vertex);
     });
