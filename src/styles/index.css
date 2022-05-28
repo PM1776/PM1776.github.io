@@ -7,14 +7,6 @@ html, body {
     color: white;
 }
 
-.center {
-    text-align: center;
-}
-
-input[type="range"] {
-    color: grey;
-}
-
 .dropdown {
     display: contents;
 }
