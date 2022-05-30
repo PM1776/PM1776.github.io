@@ -87,12 +87,12 @@ function renderRemoveVertex(v, graph) {
 
     for (let v2 of neighbors) {
         // draws them in red
-        drawEdge(v, v2, 'red');
+        drawEdge(v, v2, 'red', null);
         drawVertex(v2);
     }
 
-    drawVertex(v, 'red');
     drawGraph(graph, false, 1);
+    drawVertex(v, 'red');
 
     setTimeout(() => {
         drawGraph(graph, true, 1);
@@ -103,13 +103,6 @@ function renderRemoveVertex(v, graph) {
 
 function drawVertex(v, color = 'black', gradient, withName) {
 
-    // ctx.lineWidth = POINT_RADIUS * 2;
-    // ctx.lineCap = "round";
-    // ctx.strokeStyle = color;
-    // ctx.beginPath();
-    // ctx.moveTo(v.x, v.y);
-    // ctx.lineTo(v.x, v.y);
-    // ctx.stroke();
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(v.x, v.y, POINT_RADIUS, 0, Math.PI * 2);

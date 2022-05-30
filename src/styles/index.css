@@ -84,6 +84,21 @@ canvas {
     background-size: cover;
 }
 
+.touch {
+    background: url("../resources/touchIcon.png");
+    background-size: cover;
+}
+
+.doubleTouch {
+    background: url("../resources/doubleTouchIcon.png");
+    background-size: cover;
+}
+
+.dragTouch {
+    background: url("../resources/dragTouchIcon.png");
+    background-size: cover;
+}
+
 .yellow {
     background-color: yellow;
 }

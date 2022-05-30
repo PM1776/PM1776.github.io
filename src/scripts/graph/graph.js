@@ -181,24 +181,23 @@ export class Graph {
             throw new TypeError("v must be a vertex in the graph or an index to one.")
         }
 
-        var found = false;
-        for (let edges of this.neighbors.get(vertex)) {
-
-            let neighborsEdges = this.neighbors.get(edges);
-            for (let i = 0; i < neighborsEdges.length; i++) {
-                if (neighborsEdges[i] == vertex) {
+        this.neighbors.delete(vertex);
+        
+        for (let [vertex, neighbors] of this.neighbors) {
+            let found = false;
+            for (let i = 0; i < neighbors.length; i++) {
+                if (neighbors[i] == v) {
                     found = true;
                 }
                 if (found) {
-                    neighborsEdges[i] = neighborsEdges[i + 1];
+                    neighbors[i] = neighbors[i + 1];
                 }
             }
 
-            neighborsEdges.length = neighborsEdges.length - 1;
-            found = false;
+            if (found) neighbors.length = neighbors.length - 1;
         }
 
-        this.neighbors.delete(vertex);
+
         
         return true;
     }

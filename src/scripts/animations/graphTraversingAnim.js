@@ -13,7 +13,10 @@ async function depthFirstAnim (searchTree) {
 
     let parents = searchTree.getParents();
     for (let vertex in parents) {
-        await drawDirectionalEdgeAnim(JSON.parse(parents[vertex]), JSON.parse(vertex), true, .93);
+        let result = drawDirectionalEdgeAnim(JSON.parse(parents[vertex]), JSON.parse(vertex), true, .93);
+        drawVertex(JSON.parse(parents[vertex]), 'blue');
+        drawVertex(JSON.parse(vertex), 'blue');
+        await result;
     }
 }
 
