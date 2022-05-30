@@ -1,5 +1,5 @@
-import { SearchTree } from '../graph.js';
-import { clear, drawDirectionalEdgeAnim, drawVertex } from '../graphView.js';
+import { SearchTree } from '../graph/graph.js';
+import { clear, drawDirectionalEdgeAnim, drawVertex } from '../graph/graphView.js';
 
 /**
  * Animates through the search results of a Graph.dfs()

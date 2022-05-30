@@ -1,4 +1,4 @@
-import { clear, drawEdge, drawGraph, drawVertex } from '../graphView.js';
+import { clear, drawEdge, drawGraph, drawVertex } from '../graph/graphView.js';
 
 export function draggingEdgeAnim(graph, addingEdge, point) {
     clear();

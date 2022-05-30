@@ -1,5 +1,5 @@
 import { clear, renderNewVertex, renderNewEdge, renderRemoveVertex, 
-    drawVertex, drawVertices, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y } from '../graphView.js';
+    drawVertex, drawVertices, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y } from '../graph/graphView.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext('2d');

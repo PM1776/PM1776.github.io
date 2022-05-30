@@ -55,28 +55,12 @@ export class Graph {
 
         // Adds vertices if passed in
         if (vertices != undefined) {
-            if (!(Array.isArray(vertices))) {
-                throw new TypeError("param 'vertices' must be an Array of vertices with 'x' and 'y' properties.");
-            } else {
-                for (let vertex of vertices) {
-                    this.addVertex(vertex);
-                }
-            }
+            this.addVertices(vertices);
         }
 
         // Adds edges if passed in
         if (edges != undefined) {
-            if (!(Array.isArray(edges))) {
-                throw new TypeError("param \'edges\' must be an Array.");
-            } else {
-                for (let edge of edges) {
-                    if (Array.isArray(edge)) {
-                        this.addEdge(edge[0], edge[1]);
-                    } else {
-                        this.addEdge(edge.u, edge.v);
-                    }
-                }
-            }
+            this.addEdges(edges);
         }
     }
 
@@ -118,6 +102,16 @@ export class Graph {
         this.neighbors.set(v, []);
     }
 
+    addVertices (vertices) {
+        if (!(Array.isArray(vertices))) {
+            throw new TypeError("param 'vertices' must be an Array of vertices with 'x' and 'y' properties.");
+        } else {
+            for (let vertex of vertices) {
+                this.addVertex(vertex);
+            }
+        }
+    }
+
     /**
      * Adds an edge to the graph, passing either the vertices themselves or the relative 
      * indices to the vertices.
@@ -156,6 +150,20 @@ export class Graph {
         }
 
         return false;
+    }
+
+    addEdges (edges) {
+        if (!(Array.isArray(edges))) {
+            throw new TypeError("param \'edges\' must be an Array.");
+        } else {
+            for (let edge of edges) {
+                if (Array.isArray(edge)) {
+                    this.addEdge(edge[0], edge[1]);
+                } else {
+                    this.addEdge(edge.u, edge.v);
+                }
+            }
+        }
     }
 
     /**

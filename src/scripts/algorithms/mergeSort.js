@@ -1,6 +1,6 @@
 import { alignToEvenSpacing, mergeSortRangeAndSwap, linesOnAxis, fadeFromSorted, fade } from '../animations/sortingAnim.js';
-import { GRAD_BY_X, GRAD_BY_Y, drawVertices, drawGraph } from '../graphView.js';
-import Graph from '../graph.js';
+import { GRAD_BY_X, GRAD_BY_Y, drawVertices, drawGraph } from '../graph/graphView.js';
+import Graph from '../graph/graph.js';
 
 var axis;
 var oppAxis;
@@ -28,7 +28,6 @@ export async function mergeSort(graph, theAxis) {
     const list = graph.getVertices();
     const GRAD = (axis === 'x') ? GRAD_BY_X : GRAD_BY_Y;
     
-
     if (axis === 'x') {
         list.sort((a, b) => a.y - b.y);
     } else {

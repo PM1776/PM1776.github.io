@@ -1,5 +1,4 @@
 import { drawRange, compareSectors, mergeSectors, visualizeBruteCompare, visualizeBruteCloser, drawClosestPair } from '../animations/closestPairAnim.js';
-import { drawEdge } from '../graphView.js';
 
 /**
  * Returns the closest pair of a list of objects with 'x' and 'y' properties as an array.

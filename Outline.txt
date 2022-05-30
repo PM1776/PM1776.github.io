@@ -1,6 +1,0 @@
-Closest Pair of Points
-Convex Hull (both algorithms)
-Sorting by X and Y Visualizer
-Shortest Route to from p1 to p2 Visualiser
-Depth-first search
-Breadth-first search

@@ -1,5 +1,5 @@
 import { renderNewVertex, renderNewEdge, renderRemoveVertex, 
-    drawVertex, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y, drawVertices } from '../graphView.js';
+    drawVertex, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y, drawVertices } from '../graph/graphView.js';
 
 var canvas = document.getElementById('graphView');
 var ctx = canvas.getContext('2d');
@@ -63,6 +63,10 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
                 let color = (colors[i]) ? colors[i] : '0, 0, 0';
 
                 moveVertexToTarget(points[i], target, speed, axis, color);
+
+                if (Object.getOwnPropertyDescriptor(points[i], axis).value === target) {
+                    moved[i] = true;
+                }
             }
 
             if (!aligned()) {
@@ -95,10 +99,6 @@ function moveVertexToTarget(vertex, target, speed, axis, changeColor) {
     let color = (changeColor) ? changeColor : "0, 0, 0";
     const GRAD = (axis === 'y') ? GRAD_BY_X : GRAD_BY_Y;
     drawVertex(vertex, 'rgb(' + color + ', .5)', GRAD);
-
-    if (axisVal === target) {
-        moved[vertex.name] = true;
-    }
 }
 
 const aligned = () => moved.every((val) => val);

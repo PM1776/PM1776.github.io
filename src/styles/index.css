@@ -8,7 +8,7 @@ html, body {
 }
 
 .dropdown {
-    display: contents;
+   display: grid;
 }
 .dropdown-menu {
     top: 100%;
@@ -33,20 +33,22 @@ canvas {
 
 #legend {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    height: 50px;
     width: 100%;
     margin: auto;
+    padding-top: 10px;
     background-color: #f6f2f2;
 }
 
 #legend div {
-    margin: 0px 10px;
+    margin: 0px 10px 5px;
     display: flex;
     justify-content: center;
     align-items: center;
 
+    /* Prevent text highlighting */
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
      -khtml-user-select: none; /* Konqueror HTML */
@@ -63,22 +65,22 @@ canvas {
 }
 
 .click {
-    background: url("../clickIcon.png");
+    background: url("../resources/clickIcon.png");
     background-size: cover;
 }
 
 .doubleClick {
-    background: url("../doubleClickIcon.png");
+    background: url("../resources/doubleClickIcon.png");
     background-size: cover;
 }
 
 .rightClick {
-    background: url("../rightClickIcon.png");
+    background: url("../resources/rightClickIcon.png");
     background-size: cover;
 }
 
 .drag {
-    background: url("../dragIcon.png");
+    background: url("../resources/dragIcon.png");
     background-size: cover;
 }
 
@@ -104,4 +106,12 @@ canvas {
 
 .blue-yellow {
     background: linear-gradient(135deg, blue 50%, yellow 50%);
+}
+
+#alert {
+    display: none;
+    position: absolute;
+    bottom: 0%;
+    left: 16px;
+    right: 16px;
 }
