@@ -98,7 +98,7 @@ function moveVertexToTarget(vertex, target, speed, axis, changeColor) {
     
     let color = (changeColor) ? changeColor : "0, 0, 0";
     const GRAD = (axis === 'y') ? GRAD_BY_X : GRAD_BY_Y;
-    drawVertex(vertex, 'rgb(' + color + ', .5)', GRAD);
+    drawVertex(vertex, 'rgb(' + color + ', .5)', GRAD, true);
 }
 
 const aligned = () => moved.every((val) => val);
@@ -177,7 +177,7 @@ function fadeFromSorted (graph, sortedPoints, axis) {
 
     const fadeFrom = () => {
         drawVertices(sortedPoints, axis, false, 'rgb(' + rangeColor + ', 255)');
-        linesOnAxis(graph.getVertices(), axis);
+        //linesOnAxis(graph.getVertices(), axis);
     };
 
     return fade(fadeFrom, () => drawGraph(graph, false, 1), .01);

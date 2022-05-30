@@ -101,15 +101,25 @@ function renderRemoveVertex(v, graph) {
 
 //updateVertexWithoutEdges()
 
-function drawVertex(v, color = 'black', gradient) {
+function drawVertex(v, color = 'black', gradient, withName) {
 
-    ctx.lineWidth = POINT_RADIUS * 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = color;
+    // ctx.lineWidth = POINT_RADIUS * 2;
+    // ctx.lineCap = "round";
+    // ctx.strokeStyle = color;
+    // ctx.beginPath();
+    // ctx.moveTo(v.x, v.y);
+    // ctx.lineTo(v.x, v.y);
+    // ctx.stroke();
+    ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.moveTo(v.x, v.y);
-    ctx.lineTo(v.x, v.y);
-    ctx.stroke();
+    ctx.arc(v.x, v.y, POINT_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (withName) {
+        ctx.fillStyle = color;
+        ctx.font = "14px Arial";
+        ctx.fillText(v.name, v.x - String(v.name).length * 4, v.y - 15);
+    }
 
     if (gradient === GRAD_BY_X) {
 
@@ -158,7 +168,7 @@ function drawVertices (vertices, gradient, clear = true, color = 'black') {
     if (clear) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (let vertex of vertices) {
-        drawVertex(vertex, color, gradient);
+        drawVertex(vertex, color, gradient, true);
     }    
 }
 
@@ -318,19 +328,16 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
 
         for (let neighbor of neighbors) {
 
-            // prevents duplicate drawings of an edge
-            //if (parseInt(vertex.name) < parseInt(neighbor.name)) {
-                switch (edgeDrawing) {
-                    case 1:
-                        drawDirectionalEdge(vertex, neighbor); break;
-                    case 2:
-                        drawDirectionalEdgeAnim(vertex, neighbor); break;
-                    default:
-                        drawEdge(vertex, neighbor);
-                }
-            //}
+            switch (edgeDrawing) {
+                case 1:
+                    drawDirectionalEdge(vertex, neighbor); break;
+                case 2:
+                    drawDirectionalEdgeAnim(vertex, neighbor); break;
+                default:
+                    drawEdge(vertex, neighbor);
+            }
         }
-        drawVertex(vertex);
+        drawVertex(vertex, undefined, undefined, true);
     });
 }
 

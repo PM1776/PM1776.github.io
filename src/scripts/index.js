@@ -115,6 +115,7 @@ function resize(e) {
 
     // constantly refreshes header heights, as sometimes header stacks
     headerHeight = header.getBoundingClientRect().height;
+    legendHeight = legend.getBoundingClientRect().height;
 
     var targetX = document.body.clientWidth - CANVAS_OFFSET * 2;
     var targetY = document.body.clientHeight - headerHeight - legendHeight - CANVAS_OFFSET * 2;
@@ -130,6 +131,7 @@ function resize(e) {
 function generateRandomPoints() {
 
     graph = new Graph();
+    newPointName = GENERATE_POINTS;
 
     for (let i = 0; i < GENERATE_POINTS; i++) {
         let vertex;
@@ -142,7 +144,11 @@ function generateRandomPoints() {
 
     let prev = Math.floor(Math.random() * GENERATE_POINTS);
     for (let i = 0, rand = Math.floor(Math.random() * GENERATE_POINTS); i < rand; i++) {
-        graph.addEdge(prev, prev = Math.floor(Math.random() * GENERATE_POINTS));
+        let curr;
+        do {
+            curr = Math.floor(Math.random() * GENERATE_POINTS);
+        } while (prev == curr);
+        graph.addEdge(prev, prev = curr);
     }
 
     drawGraph(graph, true, 2);
@@ -210,8 +216,7 @@ function moveEdge (e) {
 function dropEdge (e) {
     if (!edgeStartpt) return;
 
-    let point = {name: newPointName++,
-                 x: e.clientX - CANVAS_OFFSET,
+    let point = {x: e.clientX - CANVAS_OFFSET,
                  y: e.clientY - headerHeight - legendHeight - CANVAS_OFFSET};
     let v = graph.hasVertexInRadius(point, POINT_RADIUS);
 
@@ -228,8 +233,9 @@ function dropEdge (e) {
         graph.addEdge(edgeStartpt, v);
     } else {
         drawGraph(graph, true, 1);
+        Object.defineProperty(point, 'name', {value: newPointName++});
         drawDirectionalEdgeAnim(edgeStartpt, point, true, .95);
-        drawVertex(point);
+        drawVertex(point, undefined, undefined, true);
         graph.addVertex(point);
         graph.addEdge(edgeStartpt, point);
         graph.print();
@@ -273,10 +279,19 @@ async function traverseGraph (e) {
     disableButtons();
     drawGraph(graph);
 
+    let firstEdge;
+    FIRSTNEIGHBOR:
+    for (let [vertex, neighbors] of graph.getNeighbors()) {
+        for (let neighbor of neighbors) {
+            firstEdge = vertex;
+            break FIRSTNEIGHBOR;
+        }
+    }
+
     if (e.target.id == 'depth') {
-        await depthFirstAnim(graph.dfs(6));
+        await depthFirstAnim(graph.dfs(firstEdge));
     } else if (e.target.id == 'breadth') {
-        await breadthFirstAnim(graph.bfs(6));
+        await breadthFirstAnim(graph.bfs(firstEdge));
 
     } else if (e.type === 'dblclick') {
         let point = {x: e.clientX - CANVAS_OFFSET,
@@ -306,7 +321,7 @@ function defaultLegend () {
     document.getElementById('legend').innerHTML = '';
     createLegendItem('click', "Add Point");
     createLegendItem('drag', "Add Edge");
-    createLegendItem('doubleClick', "Search From A Point"); 
+    createLegendItem('doubleClick', "Begin Search From Point"); 
     createLegendItem('rightClick', "Remove Point");
 }
 
