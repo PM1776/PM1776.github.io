@@ -45,6 +45,7 @@ window.addEventListener("load", async (e) => {
 
     canvas.addEventListener("mousedown", addRemove);
     canvas.addEventListener("touchstart", () => {touchstamp = Date.now()});
+    canvas.addEventListener("touchmove", moveEdge);
     canvas.addEventListener("touchend", addRemove);
     canvas.addEventListener("mousemove", moveEdge);
     canvas.addEventListener("mouseup", dropEdge);
@@ -56,79 +57,38 @@ window.addEventListener("load", async (e) => {
     document.getElementById('depth').addEventListener("click", traverseGraph);
     document.getElementById('breadth').addEventListener("click", traverseGraph);
 
-    resize(e);
+    await resize(e);
 
-    let scale, vertices, edges;
+    let scale = Math.min(canvas.width / 750, canvas.height / 450);
 
-    if (!mobile) { // map of the US
-        scale = Math.min(canvas.width / 900, canvas.height / 450);
+    let vertices = [{name: "Seattle", x: 105, y: 50},
+        {name: "San Francisco", x: 80, y: 210}, 
+        {name: "Los Angeles", x:105, y:275},
+        {name: "Denver", x:305, y:175},
+        {name: "Kansas City", x:430, y:245},
+        {name: "Chicago", x:480, y:100},
+        {name: "Boston", x:705, y:80},
+        {name: "New York", x:705, y:120},
+        {name: "Atlanta", x:605, y:295},
+        {name: "Miami", x:630, y:400},
+        {name: "Dallas", x:438, y:325},
+        {name: "Houston", x:480, y:360},
+    ];
 
-        vertices = [{name: "Seattle", x: 75, y: 50},
-            {name: "San Francisco", x: 50, y: 210},
-            {name: "Los Angeles", x:75, y:275},
-            {name: "Denver", x:275, y:175},
-            {name: "Kansas City", x:400, y:245},
-            {name: "Chicago", x:450, y:100},
-            {name: "Boston", x:700, y:80},
-            {name: "New York", x:675, y:120},
-            {name: "Atlanta", x:575, y:295},
-            {name: "Miami", x:600, y:400},
-            {name: "Dallas", x:408, y:325},
-            {name: "Houston", x:450, y:360},
-            {name: "Caribbean", x:700, y:350},
-            {name: "Caribbean2", x:780, y:375},
-            {name: "Island1", x:825, y:340},
-            {name: "Island2", x:870, y:370},
-        ];
-
-        edges = [
-            [0, 1], [0, 3], [0, 5], 
-            [1, 2], [1, 3],
-            [2, 3], [2, 4], [2, 10],
-            [3, 4], [3, 5],
-            [4, 5], [4, 7], [4, 8], [4, 10],
-            [5, 6], [5, 7],
-            [6, 7], 
-            [7, 8],
-            [8, 9], [8, 10], [8, 11],
-            [9, 11],
-            [10, 11],
-            [12, 13]
-        ];
-
-    } else { // mobile, map of Europe
-        scale = Math.min(canvas.width / 400, canvas.height / 500);
-
-        vertices = [{name: "Dublin", x: 70, y: 216},
-            {name: "Oslo", x: 216, y: 162},
-            {name: "Helsinki", x: 310, y:162},
-            {name: "London", x: 110, y: 257},
-            {name: "Berlin", x: 224, y: 262},
-            {name: "Minsk", x: 338, y: 246},
-            {name: "Paris", x: 123, y: 297},
-            {name: "Kiev", x: 368, y: 287},
-            {name: "Bern", x: 162, y: 331},
-            {name: "Budapest", x: 270, y: 336},
-            {name: "Spain", x: 35, y: 390},
-            {name: "Rome", x: 202, y: 406},
-            {name: "Athens", x: 317, y: 463}
-        ];
-
-        edges = [
-            [0, 1], [0, 3], [0, 4], 
-            [1, 4],
-            [2, 4], [2, 5],
-            [3, 4], [3, 6],
-            [4, 5], [4, 7], [4, 8], [4, 9],
-            [5, 7],
-            [6, 8], 
-            [7, 9],
-            [8, 10], [8, 11],
-            [9, 11], [9, 12],
-            [10, 11],
-            [11, 12]
-        ];
-    }
+    let edges = [
+        [0, 1], [0, 3], [0, 5], 
+        [1, 2], [1, 3],
+        [2, 3], [2, 4], [2, 10],
+        [3, 4], [3, 5],
+        [4, 5], [4, 7], [4, 8], [4, 10],
+        [5, 6], [5, 7],
+        [6, 7], 
+        [7, 8],
+        [8, 9], [8, 10], [8, 11],
+        [9, 11],
+        [10, 11],
+        [12, 13]
+    ];
 
     for (let i = 0; i < vertices.length; i++) {
         let x = Math.floor(Object.getOwnPropertyDescriptor(vertices[i], 'x').value * scale);
@@ -138,12 +98,12 @@ window.addEventListener("load", async (e) => {
 
     graph = new Graph(vertices, edges);
     graph.print();
-    drawGraph(graph, true, 2);
+    drawGraph(graph, true);
     defaultLegend();
     enableButtons();
 });
 
-function resize(e) {
+async function resize(e) {
 
     // constantly refreshes header heights, as sometimes header stacks
     headerHeight = header.getBoundingClientRect().height;
@@ -153,10 +113,10 @@ function resize(e) {
     var targetY = document.body.clientHeight - headerHeight - legendHeight - CANVAS_OFFSET * 2;
 
     if (e.type === 'load') {
-        resizeInstantly(targetX, targetY);
+        await resizeAnim(targetX, targetY);
     } else {
         resizeInstantly(targetX, targetY);
-        drawGraph(graph, true, 1);
+        drawGraph(graph, true);
     }
 }
 
@@ -183,12 +143,12 @@ function generateRandomPoints() {
         graph.addEdge(prev, prev = curr);
     }
 
-    drawGraph(graph, true, 2);
+    drawGraph(graph, true);
 }
 
 function addRemove(e) {
     if (disabled) return;
-
+    console.log(e.type + ", ");
     let x = (e.type === 'mousedown') ? e.clientX - CANVAS_OFFSET : e.touches[0].clientX;
     let y = (e.type === 'mousedown') ? e.clientY - headerHeight - legendHeight - CANVAS_OFFSET : e.touches[0].clientY;
     let v = graph.hasVertexInRadius({x: x, y: y}, POINT_RADIUS);
@@ -254,22 +214,19 @@ function dropEdge (e) {
 
     // dropped on same vertex, do nothing
     if (v === edgeStartpt) {
-        drawGraph(graph, true, 1);
+        drawGraph(graph, true);
         edgeStartpt = null;
         return;
     }
 
     if (v) {
-        drawGraph(graph, true, 1);
-        drawDirectionalEdgeAnim(edgeStartpt, v, true, .95);
         graph.addEdge(edgeStartpt, v);
+        drawGraph(graph, true);
     } else {
-        drawGraph(graph, true, 1);
         Object.defineProperty(point, 'name', {value: newPointName++});
-        drawDirectionalEdgeAnim(edgeStartpt, point, true, .95);
-        drawVertex(point, undefined, undefined, true);
         graph.addVertex(point);
         graph.addEdge(edgeStartpt, point);
+        drawGraph(graph, true);
         graph.print();
     }
 
@@ -358,8 +315,7 @@ function createLegendItem(classOfIcon, text) {
 function defaultLegend () {
     document.getElementById('legend').innerHTML = '';
     createLegendItem((!mobile) ? 'click' : 'touch', "Add Point");
-    createLegendItem((!mobile) ? 'drag' : 'dragTouch', "Add Edge");
-    createLegendItem((!mobile) ? 'doubleClick' : 'doubleTouch', "Begin Search From Point"); 
+    createLegendItem((!mobile) ? 'drag' : 'dragTouch', "Connect");
     createLegendItem('rightClick', "Remove Point");
 }
 

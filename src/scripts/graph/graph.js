@@ -127,6 +127,7 @@ export class Graph {
 
             if (this.neighbors.has(u)) {
                 this.neighbors.get(u).push(v);
+                this.neighbors.get(v).push(u);
                 return true;
             }
 
@@ -145,6 +146,7 @@ export class Graph {
             let v2 = this.vertexAt(v);
 
             this.neighbors.get(v1).push(v2);
+            this.neighbors.get(v2).push(v1);
 
             return true;
         }
@@ -181,23 +183,24 @@ export class Graph {
             throw new TypeError("v must be a vertex in the graph or an index to one.")
         }
 
-        this.neighbors.delete(vertex);
-        
-        for (let [vertex, neighbors] of this.neighbors) {
-            let found = false;
-            for (let i = 0; i < neighbors.length; i++) {
-                if (neighbors[i] == v) {
+        var found = false;
+        for (let edges of this.neighbors.get(vertex)) {
+
+            let neighborsEdges = this.neighbors.get(edges);
+            for (let i = 0; i < neighborsEdges.length; i++) {
+                if (neighborsEdges[i] == vertex) {
                     found = true;
                 }
                 if (found) {
-                    neighbors[i] = neighbors[i + 1];
+                    neighborsEdges[i] = neighborsEdges[i + 1];
                 }
             }
 
-            if (found) neighbors.length = neighbors.length - 1;
+            neighborsEdges.length = neighborsEdges.length - 1;
+            found = false;
         }
 
-
+        this.neighbors.delete(vertex);
         
         return true;
     }

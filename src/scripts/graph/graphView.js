@@ -3,7 +3,9 @@ import { Graph } from './graph.js';
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext("2d");
 
-const POINT_RADIUS = (mobileCheck()) ? 10 : 5;
+const mobile = mobileCheck();
+
+const POINT_RADIUS = (mobile) ? 10 : 5;
 const VIEW_CHANGES = 1000;
 const GRAD_BY_X = 1;
 const GRAD_BY_Y = 2;
@@ -41,9 +43,8 @@ function resizeAnim(targetX, targetY) {
     return new Promise(resolve => {
         let resize = () => {
 
-            canvasDoubleW += (targetX - canvas.width) * .15;
-            canvasDoubleH += (targetY - canvas.height) * .15;
-            console.log("target: " + targetX + ", " + targetY);
+            canvasDoubleW += (targetX - canvas.width) * .19;
+            canvasDoubleH += (targetY - canvas.height) * .19;
 
             canvas.width = canvasDoubleW;
             canvas.height = canvasDoubleH;
@@ -66,13 +67,13 @@ function resizeInstantly (targetX, targetY) {
 function renderNewVertex(v, graph) {
     checkIfGraph(graph);
     graph.addVertex(v);
-    drawGraph(graph, true, 1);
+    drawGraph(graph, true);
 }
 
 function renderNewEdge(u, v, graph) {
     checkIfGraph(graph);
     graph.addEdge(u, v);
-    drawGraph(graph, true, 1);
+    drawGraph(graph, true);
 }
 
 function renderRemoveVertex(v, graph) {
@@ -91,11 +92,11 @@ function renderRemoveVertex(v, graph) {
         drawVertex(v2);
     }
 
-    drawGraph(graph, false, 1);
+    drawGraph(graph, false);
     drawVertex(v, 'red');
 
     setTimeout(() => {
-        drawGraph(graph, true, 1);
+        drawGraph(graph, true);
     }, VIEW_CHANGES);
 }
 
@@ -109,9 +110,7 @@ function drawVertex(v, color = 'black', gradient, withName) {
     ctx.fill();
 
     if (withName) {
-        ctx.fillStyle = color;
-        ctx.font = "14px Arial";
-        ctx.fillText(v.name, v.x - String(v.name).length * 4, v.y - 15);
+        drawVertexName(v);
     }
 
     if (gradient === GRAD_BY_X) {
@@ -147,6 +146,19 @@ function drawVertex(v, color = 'black', gradient, withName) {
     }
 }
 
+function drawVertexName(v, font = '14px Arial', color = 'blue', aboveVertex) {
+    ctx.fillStyle = color;
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.fillText(v.name, v.x, v.y - ((aboveVertex) ? 15 : -2));
+}
+
+function drawVerticesNames (vertices, font, color, aboveVertex) {
+    for (let v of vertices) {
+        drawVertexName(v, font, color, aboveVertex);
+    }
+}
+
 /**
  * Draws an array of vertices with an optional gradient leading up to it on the X or Y axis.
  * 
@@ -156,7 +168,7 @@ function drawVertex(v, color = 'black', gradient, withName) {
  * @param {*} clear a boolean indicating whether to clear #graphView before drawing, with a default of true.
  * @param {*} color the color to draw the 
  */
-function drawVertices (vertices, gradient, clear = true, color = 'black') {
+function drawVertices (vertices, gradient, clear = true, color) {
 
     if (clear) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -330,8 +342,10 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
                     drawEdge(vertex, neighbor);
             }
         }
-        drawVertex(vertex, undefined, undefined, true);
+        drawVertex(vertex, undefined, undefined);
     });
+
+    drawVerticesNames(graph.getVertices(), undefined, undefined, (!mobile) ? true : false);
 }
 
 export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, mobileCheck,
