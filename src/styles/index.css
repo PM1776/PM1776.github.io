@@ -52,7 +52,7 @@ canvas {
     background-color: #f6f2f2;
 }
 
-#legend div {
+#legend div, form {
     margin: 0px 10px 5px;
     display: flex;
     justify-content: center;

@@ -1,12 +1,12 @@
 import { SearchTree } from '../graph/graph.js';
-import { clear, drawDirectionalEdgeAnim, drawVertex } from '../graph/graphView.js';
+import { clear, drawDirectionalEdgeAnim, drawVertex, showNotification } from '../graph/graphView.js';
 
 /**
  * Animates through the search results of a Graph.dfs()
  * 
  * @param {*} searchTree the SearchTree object returned from a Graph.dfs() or Graph.bfs().
  */
-async function depthFirstAnim (searchTree) {
+async function depthFirstAnim (searchTree, searchingFor) {
     if (!searchTree instanceof SearchTree) {
         throw new TypeError("Only displays results from a SearchTree class, returned from a Graph.dfs or Graph.bfs");
     }
@@ -17,6 +17,14 @@ async function depthFirstAnim (searchTree) {
         drawVertex(JSON.parse(parents[vertex]), 'blue');
         drawVertex(JSON.parse(vertex), 'blue');
         await result;
+
+        if (vertex === JSON.stringify(searchingFor)) {
+            let path = searchTree.getPath(searchingFor);
+            let pathString = path.reduce((prev, val, i) => 
+                JSON.parse(val).name + " -> " + ((i == 1) ? JSON.parse(prev).name : prev));
+            showNotification(pathString + "</br>Search length count: " + path.length, 5000);
+            break;
+        }
     }
 }
 

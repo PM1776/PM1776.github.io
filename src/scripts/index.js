@@ -1,7 +1,7 @@
 import Graph from './graph/graph.js';
 import { mobileCheck, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawEdge, drawGraph, drawVertices, 
-    POINT_RADIUS, VIEW_CHANGES, clear, drawDirectionalEdgeAnim } from './graph/graphView.js';
+    POINT_RADIUS, VIEW_CHANGES, clear, drawDirectionalEdgeAnim, showNotification } from './graph/graphView.js';
 import { mergeSort } from './algorithms/mergeSort.js';
 import { findClosestPairIn } from './algorithms/closestPairOfPoints.js';
 import { depthFirstAnim, breadthFirstAnim } from './animations/graphTraversingAnim.js';
@@ -22,7 +22,7 @@ let mobile = mobileCheck();
 
 let CANVAS_OFFSET;
 const GENERATE_POINTS = (mobile) ? 8 : 20;
-var newPointName = GENERATE_POINTS;
+var newPointName;
 
 let touchstamp;
 
@@ -49,31 +49,30 @@ window.addEventListener("load", async (e) => {
     canvas.addEventListener("touchend", addRemove);
     canvas.addEventListener("mousemove", moveEdge);
     canvas.addEventListener("mouseup", dropEdge);
-    canvas.addEventListener("dblclick", traverseGraph);
-    document.getElementById('genRand').addEventListener("click", generateRandomPoints);
     document.getElementById('closest').addEventListener("click", findClosestPair);
     document.getElementById('byX').addEventListener("click", beginMergeSort);
     document.getElementById('byY').addEventListener("click", beginMergeSort);
-    document.getElementById('depth').addEventListener("click", traverseGraph);
-    document.getElementById('breadth').addEventListener("click", traverseGraph);
+    document.getElementById('search').addEventListener("click", showSearchForm);
 
     await resize(e);
 
-    let scale = Math.min(canvas.width / 750, canvas.height / 450);
+    let scale = Math.min(canvas.width / 760, canvas.height / 450);
 
-    let vertices = [{name: "Seattle", x: 105, y: 50},
-        {name: "San Francisco", x: 80, y: 210}, 
-        {name: "Los Angeles", x:105, y:275},
-        {name: "Denver", x:305, y:175},
-        {name: "Kansas City", x:430, y:245},
-        {name: "Chicago", x:480, y:100},
-        {name: "Boston", x:705, y:80},
-        {name: "New York", x:705, y:120},
-        {name: "Atlanta", x:605, y:295},
-        {name: "Miami", x:630, y:400},
-        {name: "Dallas", x:438, y:325},
-        {name: "Houston", x:480, y:360},
+    let vertices = [{name: "Seattle", x: 115, y: 50},
+        {name: "San Francisco", x: 90, y: 210},
+        {name: "Los Angeles", x:115, y:275},
+        {name: "Denver", x:315, y:175},
+        {name: "Kansas City", x:440, y:245},
+        {name: "Chicago", x:490, y:100},
+        {name: "Boston", x:715, y:80},
+        {name: "New York", x:715, y:120},
+        {name: "Atlanta", x:615, y:295},
+        {name: "Miami", x:640, y:400},
+        {name: "Dallas", x:448, y:325},
+        {name: "Houston", x:490, y:360},
     ];
+
+    newPointName = vertices.length;
 
     let edges = [
         [0, 1], [0, 3], [0, 5], 
@@ -167,10 +166,8 @@ function addRemove(e) {
                 if (!inOtherPoint) {
                     renderNewVertex( {name: newPointName++, x: x, y: y}, graph);
                 } else {
-                    document.getElementsByClassName('alert')[0].style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementsByClassName('alert')[0].style.display = 'none';
-                    }, 3000);
+                    showNotification("<strong>A point must not overlap another.</strong> Space is nice.",
+                        3000);
                 }
             }
         }
@@ -208,7 +205,8 @@ function moveEdge (e) {
 function dropEdge (e) {
     if (!edgeStartpt) return;
 
-    let point = {x: e.clientX - CANVAS_OFFSET,
+    let point = {name: '-',
+                 x: e.clientX - CANVAS_OFFSET,
                  y: e.clientY - headerHeight - legendHeight - CANVAS_OFFSET};
     let v = graph.hasVertexInRadius(point, POINT_RADIUS);
 
@@ -264,35 +262,58 @@ async function findClosestPair () {
     defaultLegend();
 }
 
-async function traverseGraph (e) {
+function showSearchForm () {
+
+    let div = document.createElement('div');
+    legend.innerHTML = '';
+    legend.appendChild(div);
+    div.insertAdjacentHTML("afterend", 
+    `<form> 
+        <label for="start">Starting From:</label>
+        <input type="text" id="start" placeholder="To Infinity"/>
+        <label for="start">Searching For:</label>
+        <input type="text" id="searching" placeholder="And Beyond"/>
+        <input type="radio" id="depthS" name="search" value="Depth-First Search">
+        <label for="depthS">Depth-First Search</label>
+        <input type="radio" id="breadthS" name="search" value="Breadth-First Search">
+        <label for="breadthS">Breadth-First Search</label>
+        <input type="button" id="submit" value="Search" />
+    </form>`);
+
+    document.getElementById('submit').onclick = () => {
+
+        let starting = document.getElementById("start").value;
+        let searchingFor = document.getElementById("searching").value;
+        let search;
+        for (let radio of document.getElementsByName("search")) {
+            if (radio.checked) {
+                search = radio.value;
+                break;
+            }
+        }
+        
+        starting = graph.hasVertex(starting);
+        searchingFor = graph.hasVertex(searchingFor);
+        if (starting && searchingFor) {
+            traverseGraph(starting, searchingFor, search);
+        }
+    };
+    
+}
+
+async function traverseGraph (start, searchingFor, search) {
 
     legendHeight = parseInt(window.getComputedStyle(legend).height);
     legend.innerHTML = '';
-    createLegendItem('blue', "Traversed Edges");
+    createLegendItem('blue', "Searched");
     legend.style.height = legendHeight + "px";
 
     disableButtons();
     drawGraph(graph);
-
-    let firstEdge;
-    FIRSTNEIGHBOR:
-    for (let [vertex, neighbors] of graph.getNeighbors()) {
-        for (let neighbor of neighbors) {
-            firstEdge = vertex;
-            break FIRSTNEIGHBOR;
-        }
-    }
-
-    if (e.target.id == 'depth') {
-        await depthFirstAnim(graph.dfs(firstEdge));
-    } else if (e.target.id == 'breadth') {
-        await breadthFirstAnim(graph.bfs(firstEdge));
-
-    } else if (e.type === 'dblclick') {
-        let point = {x: e.clientX - CANVAS_OFFSET,
-                     y: e.clientY - headerHeight - legendHeight - CANVAS_OFFSET};
-        let v = graph.hasVertexInRadius(point, POINT_RADIUS);
-        if (v) await breadthFirstAnim(graph.bfs(v));
+    if (search == 'Depth-First Search') {
+        await depthFirstAnim(graph.dfs(start), searchingFor);
+    } else {
+        await breadthFirstAnim(graph.bfs(start), searchingFor);
     }
     enableButtons();
     defaultLegend();
@@ -322,7 +343,7 @@ function defaultLegend () {
 function disableButtons () {
     disabled = true;
 
-    for (let s of ['genRand', 'closest', 'depth', 'breadth']) {
+    for (let s of ['closest', 'search']) {
         document.getElementById(s).setAttribute("disabled", "");
         document.getElementById(s).setAttribute("aria-disabled", ""); // for assistive technologies
     }
@@ -334,7 +355,7 @@ function disableButtons () {
 function enableButtons () {
     disabled = false;
 
-    for (let s of ['genRand', 'closest', 'depth', 'breadth']) {
+    for (let s of ['closest', 'search']) {
         document.getElementById(s).removeAttribute("disabled");
         document.getElementById(s).removeAttribute("aria-disabled"); // for assistive technologies
     }

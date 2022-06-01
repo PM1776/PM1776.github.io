@@ -261,15 +261,25 @@ export class Graph {
     }
 
     /** 
-     * A poor performance alternative has() method for the this.neighbors Map, in place as a working alternative
-     * for object keys in a Map requiring the exact reference. I believe a Proxy could work over the
-     * get, set, and has methods and inputing them as strigified objects, but I don't seem to know enough
-     * to effectively research it.
+     * An alternative has() method for the this.neighbors Map, in place due to object keys in a Map requiring 
+     * the exact reference. I believe a Proxy could work over the
+     * get, set, and has methods and inputing them as strigified objects, but I don't seem to understand much
+     * at all about them.
+     * 
+     * @param v the vertex to check if in the graph. Alternatively, can pass in a name and search by that.
+     * @returns the vertex in the graph.
      */
     hasVertex(v) {
+
         for (let [vertex, neighs] of this.neighbors) {
-            if (JSON.stringify(v) === JSON.stringify(vertex)) {
-                return vertex;
+            if (typeof v === 'string') {
+                if (vertex.name.normalize() === v.normalize()) {
+                    return vertex;
+                }
+            } else {
+                if (JSON.stringify(v) === JSON.stringify(vertex)) {
+                    return vertex;
+                }
             }
         }
 

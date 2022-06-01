@@ -93,7 +93,7 @@ function renderRemoveVertex(v, graph) {
     }
 
     drawGraph(graph, false);
-    drawVertex(v, 'red');
+    drawVertex(v, 'red', undefined, true);
 
     setTimeout(() => {
         drawGraph(graph, true);
@@ -150,7 +150,8 @@ function drawVertexName(v, font = '14px Arial', color = 'blue', aboveVertex) {
     ctx.fillStyle = color;
     ctx.font = font;
     ctx.textAlign = 'center';
-    ctx.fillText(v.name, v.x, v.y - ((aboveVertex) ? 15 : -2));
+    ctx.fillText(v.name, v.x, v.y - 15);
+    drawEdge({x: v.x, y: v.y}, {x: v.x, y: v.y - 12}, 'blue', null, 2);
 }
 
 function drawVerticesNames (vertices, font, color, aboveVertex) {
@@ -345,9 +346,17 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
         drawVertex(vertex, undefined, undefined);
     });
 
-    drawVerticesNames(graph.getVertices(), undefined, undefined, (!mobile) ? true : false);
+    drawVerticesNames(graph.getVertices(), (mobile) ? 'bold 14px Arial' : undefined, undefined, (!mobile) ? true : false);
 }
 
-export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, mobileCheck,
+function showNotification (message, time) {
+    document.getElementsByClassName('alert')[0].innerHTML = message;
+    document.getElementsByClassName('alert')[0].style.display = 'block';
+    setTimeout(() => {
+        document.getElementsByClassName('alert')[0].style.display = 'none';
+    }, time);
+}
+
+export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, mobileCheck, showNotification,
     clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph };

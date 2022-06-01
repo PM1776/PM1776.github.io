@@ -177,10 +177,9 @@ function fadeFromSorted (graph, sortedPoints, axis) {
 
     const fadeFrom = () => {
         drawVertices(sortedPoints, axis, false, 'rgb(' + rangeColor + ', 255)');
-        //linesOnAxis(graph.getVertices(), axis);
     };
 
-    return fade(fadeFrom, () => drawGraph(graph, false, 1), .01);
+    return fade(fadeFrom, () => drawGraph(graph, false), .01);
 }
 
 export { mergeSortRangeAndSwap, alignToEvenSpacing, aligned, linesOnAxis, fadeFromSorted, fade };
