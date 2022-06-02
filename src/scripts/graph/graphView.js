@@ -3,9 +3,9 @@ import { Graph } from './graph.js';
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext("2d");
 
-const mobile = mobileCheck();
+const MOBILE = mobileCheck();
 
-const POINT_RADIUS = (mobile) ? 10 : 5;
+const POINT_RADIUS = (MOBILE) ? 10 : 5;
 const VIEW_CHANGES = 1000;
 const GRAD_BY_X = 1;
 const GRAD_BY_Y = 2;
@@ -146,7 +146,12 @@ function drawVertex(v, color = 'black', gradient, withName) {
     }
 }
 
-function drawVertexName(v, font = '14px Arial', color = 'blue', aboveVertex) {
+function drawVertexName(v, font = '14px Arial', color = 'blue', withBackground) {
+    if (withBackground) {
+        ctx.fillStyle = '#f6f2f2';
+        ctx.fillRect(v.x - String(v.name).length * 3.6, v.y - 26, String(v.name).length * 7.2, 14);
+    }
+    
     ctx.fillStyle = color;
     ctx.font = font;
     ctx.textAlign = 'center';
@@ -154,9 +159,9 @@ function drawVertexName(v, font = '14px Arial', color = 'blue', aboveVertex) {
     drawEdge({x: v.x, y: v.y}, {x: v.x, y: v.y - 12}, 'blue', null, 2);
 }
 
-function drawVerticesNames (vertices, font, color, aboveVertex) {
+function drawVerticesNames (vertices, font, color, withBackground) {
     for (let v of vertices) {
-        drawVertexName(v, font, color, aboveVertex);
+        drawVertexName(v, font, color, withBackground);
     }
 }
 
@@ -299,9 +304,13 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
             actx.stroke();
             
             if (lengthDownArrow > POINT_RADIUS) {
+                drawVertexName(v1, undefined, undefined, true);
+                drawVertexName(v2, undefined, undefined, true);
                 requestAnimationFrame(moveArrow);
             } else {
                 if (keepOnCanvas) ctx.drawImage(arrowCanvas, 0, 0);
+                drawVertexName(v1, undefined, undefined, true);
+                drawVertexName(v2, undefined, undefined, true);
                 document.getElementById('canvasContainer').removeChild(arrowCanvas);
                 resolve();
             }
@@ -346,7 +355,7 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
         drawVertex(vertex, undefined, undefined);
     });
 
-    drawVerticesNames(graph.getVertices(), (mobile) ? 'bold 14px Arial' : undefined, undefined, (!mobile) ? true : false);
+    drawVerticesNames(graph.getVertices(), undefined, undefined, true);
 }
 
 function showNotification (message, time) {
@@ -357,6 +366,6 @@ function showNotification (message, time) {
     }, time);
 }
 
-export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, mobileCheck, showNotification,
+export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, showNotification,
     clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph };

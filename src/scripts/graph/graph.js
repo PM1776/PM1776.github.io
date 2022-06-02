@@ -273,7 +273,7 @@ export class Graph {
 
         for (let [vertex, neighs] of this.neighbors) {
             if (typeof v === 'string') {
-                if (vertex.name.normalize() === v.normalize()) {
+                if (String(vertex.name).normalize().toLowerCase() === String(v.normalize()).toLowerCase()) {
                     return vertex;
                 }
             } else {

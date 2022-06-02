@@ -4,7 +4,7 @@ import { renderNewVertex, renderNewEdge, renderRemoveVertex,
 var canvas = document.getElementById('graphView');
 var ctx = canvas.getContext('2d');
 
-var rangeColor = '0, 255, 0';
+var rangeColor = '144, 238, 144';
 
 var moved;
 
@@ -179,7 +179,7 @@ function fadeFromSorted (graph, sortedPoints, axis) {
         drawVertices(sortedPoints, axis, false, 'rgb(' + rangeColor + ', 255)');
     };
 
-    return fade(fadeFrom, () => drawGraph(graph, false), .01);
+    return fade(fadeFrom, () => drawGraph(graph, false), .008);
 }
 
 export { mergeSortRangeAndSwap, alignToEvenSpacing, aligned, linesOnAxis, fadeFromSorted, fade };

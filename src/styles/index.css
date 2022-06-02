@@ -124,7 +124,7 @@ canvas {
 }
 
 .green {
-    background-color: rgb(0, 255, 0);
+    background-color: rgb(144, 238, 144);
 }
 
 .darkGreen {
@@ -141,4 +141,20 @@ canvas {
     bottom: 0%;
     left: 16px;
     right: 16px;
+}
+
+form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: ce;
+}
+
+input[type='text'] {
+    margin: 0px 10px;
+}
+
+form div label { /* radio button labels */
+    margin-left: 2px;
+    margin-right: 10px;
 }
