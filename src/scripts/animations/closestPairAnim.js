@@ -1,5 +1,6 @@
 import { clear, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y } from '../graph/graphView.js';
+import { fade } from '../animations/sortingAnim.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext('2d');
@@ -130,3 +131,10 @@ export function drawClosestPair (points, closestPair) {
     drawEdge(closestPair.p1, closestPair.p2, closestPairColor);   
 }
 
+export function fadeFromClosest (graph, closestPair) {
+    const fadeFrom = () => {
+        drawClosestPair(graph.getVertices(), closestPair);
+    };
+
+    return fade(fadeFrom, () => drawGraph(graph, false), .008);
+}

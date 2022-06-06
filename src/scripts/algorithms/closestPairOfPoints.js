@@ -1,4 +1,5 @@
-import { drawRange, compareSectors, mergeSectors, visualizeBruteCompare, visualizeBruteCloser, drawClosestPair } from '../animations/closestPairAnim.js';
+import { drawRange, compareSectors, mergeSectors, visualizeBruteCompare, visualizeBruteCloser, drawClosestPair, fadeFromClosest } from '../animations/closestPairAnim.js';
+import Graph from '../graph/graph.js';
 
 /**
  * Returns the closest pair of a list of objects with 'x' and 'y' properties as an array.
@@ -6,18 +7,28 @@ import { drawRange, compareSectors, mergeSectors, visualizeBruteCompare, visuali
  * @param {*} list the array of points with 'x' and 'y' properties of which to determine the closest pair.
  * @returns  an array of the closest two objects by co-ordinates.
  */
-async function findClosestPairIn (list) {
+async function findClosestPairIn (graph) {
 
-    if (!list.every((point) => point.hasOwnProperty('x') && point.hasOwnProperty('y'))) {
+    var list;
+
+    if (!graph instanceof Graph) {
+        throw new TypeError("Must pass in an instance of a Graph.");
+    } else if (!(list = graph.getVertices()).every((point) => point.hasOwnProperty('x') && point.hasOwnProperty('y'))) {
         throw new TypeError("Every object must have an 'x' and a 'y' property.");
     }
-    
+
     var sortedByX = [...list].sort((p1, p2) => p1.x - p2.x);
     var sortedByY = [...list].sort((p1, p2) => p1.y - p2.y);
 
     let closestPair = await divide(sortedByX, 0, sortedByX.length - 1, sortedByY);
 
     drawClosestPair(sortedByX, closestPair);
+    await new Promise(resolve => {
+        setTimeout(async () => {
+            await fadeFromClosest(graph, closestPair);
+            resolve();
+        }, 5000);
+    });
 
     return [closestPair.p1, closestPair.p2];
 }
@@ -88,6 +99,8 @@ async function bruteForce (points, sortedByX, low, high) {
     let closestPair = new Pair(points[0], points[1]);
     for (let i = 0; i < points.length; i++) {
         for (let j = i + 1; j < points.length; j++) {
+
+            if (i === 0 && j === 1) continue;
 
             await visualizeBruteCompare(sortedByX, closestPair, points[i], points[j], low, high);
 

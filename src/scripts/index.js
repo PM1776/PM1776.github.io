@@ -25,7 +25,7 @@ var newPointName;
 let touchstamp;
 
 window.addEventListener("resize", resize);
-window.addEventListener('orientationchange', (e) => {collapseNavbarToggle(); resize(e);}, false); // for mobile
+window.addEventListener('orientationchange', (e) => {collapseNavbarToggle(false); resize(e);}, false); // for mobile
 window.addEventListener("contextmenu", e => e.preventDefault());
 
 window.addEventListener("load", async (e) => {
@@ -75,18 +75,17 @@ window.addEventListener("load", async (e) => {
     newPointName = vertices.length;
 
     let edges = [
-        [0, 1], [0, 3], [0, 5], 
-        [1, 2], [1, 3],
-        [2, 3], [2, 4], [2, 10],
-        [3, 4], [3, 5],
-        [4, 5], [4, 7], [4, 8], [4, 10],
-        [5, 6], [5, 7],
-        [6, 7], 
-        [7, 8],
-        [8, 9], [8, 10], [8, 11],
-        [9, 11],
-        [10, 11],
-        [12, 13]
+        [0, 1, 807], [0, 3, 1331], [0, 5, 2097], 
+        [1, 2, 381], [1, 3, 1267],
+        [2, 3, 1015], [2, 4, 1663], [2, 10, 1435],
+        [3, 4, 599], [3, 5, 1003],
+        [4, 5, 533], [4, 7, 1260], [4, 8, 864], [4, 10, 496],
+        [5, 6, 983], [5, 7, 787],
+        [6, 7, 214], 
+        [7, 8, 888],
+        [8, 9, 661], [8, 10, 781], [8, 11, 810],
+        [9, 11, 1187],
+        [10, 11, 239],
     ];
 
     // Scales and centers
@@ -115,7 +114,8 @@ async function resize(e) {
 
     if (e.type === 'load') {
         await resizeAnim(targetX, targetY);
-    } else {
+    } else if (e.type === 'orientationchange' ||
+              (e.type === 'resize' && !MOBILE)) {
         resizeInstantly(targetX, targetY);
         drawGraph(graph, true);
     }
@@ -237,6 +237,8 @@ function dropEdge (e) {
 
 async function beginMergeSort(e) {
 
+    collapseNavbarToggle(true);
+
     legendHeight = parseInt(window.getComputedStyle(legend).height);
     document.getElementById('legend').innerHTML = '';
     createLegendItem('green', "Sorting");
@@ -253,6 +255,8 @@ async function beginMergeSort(e) {
 
 async function findClosestPair () {
 
+    collapseNavbarToggle(true);
+
     legendHeight = parseInt(window.getComputedStyle(legend).height);
     document.getElementById('legend').innerHTML = '';
     createLegendItem('blue', "Closest Pair");
@@ -263,12 +267,14 @@ async function findClosestPair () {
     legend.style.height = legendHeight + "px";
 
     disableButtons();
-    await findClosestPairIn(graph.getVertices());
+    await findClosestPairIn(graph);
     enableButtons();
     defaultLegend();
 }
 
 async function traverseGraph () {
+
+    collapseNavbarToggle(true);
 
     let starting = document.getElementById("start").value;
     let searchingFor = document.getElementById("searchingFor").value;
@@ -297,9 +303,9 @@ async function traverseGraph () {
     disableButtons();
     drawGraph(graph);
     if (search == 'depth') {
-        await depthFirstAnim(graph.dfs(starting), searchingFor);
+        await depthFirstAnim(graph.dfs(starting), searchingFor, graph);
     } else {
-        await breadthFirstAnim(graph.bfs(starting), searchingFor);
+        await breadthFirstAnim(graph.bfs(starting), searchingFor, graph);
     }
     enableButtons();
     defaultLegend();

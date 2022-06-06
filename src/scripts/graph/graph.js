@@ -21,8 +21,6 @@ class TwoEqualsMap extends Map {
 }
 
 export class Graph {
-
-    #neighbors;
     
     /**
      * Constructs a graph from no parameters, only vertices, or vertices and edges.
@@ -72,7 +70,7 @@ export class Graph {
      */
     vertexAt(i) {
         if (i < 0 || i >= this.neighbors.keys().length) {
-            throw new TypeError("i must be within the size of total vertices");
+            throw new TypeError("Index " + i + " not within length of total vertices.");
         }
 
         let count = 0;
@@ -120,33 +118,35 @@ export class Graph {
      * @param {*} v the second vertex, or the relative index to the vertex.
      * @returns true if the insertion was a success and false if not.
      */
-    addEdge(u, v) {
+    addEdge(u, v, weight) {
 
         // adding by element
         if (isNaN(u) && isNaN(v)) {
 
             if (this.neighbors.has(u)) {
-                this.neighbors.get(u).push(v);
-                this.neighbors.get(v).push(u);
+
+                this.neighbors.get(u).push((!weight) ? {v: v} : {v: v, weight: weight});
+                this.neighbors.get(v).push((!weight) ? {v: u} : {v: u, weight: weight});
+
                 return true;
             }
 
         // adding by relative index
         } else { 
             if (u < 0 || u >= this.neighbors.size) {
-                console.log("couldn't add 'u' " + u +": index out of bounds");
+                console.log("couldn't add 'u' " + u + ": index out of bounds");
                 return -1;
             }
             if (v < 0 || v >= this.neighbors.size) {
-                console.log("couldn't add 'v': index out of bounds");
+                console.log("couldn't add 'v' " + v + ": index out of bounds");
                 return -1;
             }
 
             let v1 = this.vertexAt(u);
             let v2 = this.vertexAt(v);
 
-            this.neighbors.get(v1).push(v2);
-            this.neighbors.get(v2).push(v1);
+            this.neighbors.get(v1).push((!weight) ? {v: v2} : {v: v2, weight: weight});
+            this.neighbors.get(v2).push((!weight) ? {v: v1} : {v: v1, weight: weight});
 
             return true;
         }
@@ -160,9 +160,9 @@ export class Graph {
         } else {
             for (let edge of edges) {
                 if (Array.isArray(edge)) {
-                    this.addEdge(edge[0], edge[1]);
+                    this.addEdge(edge[0], edge[1], (edge[2]) ? edge[2] : undefined);
                 } else {
-                    this.addEdge(edge.u, edge.v);
+                    this.addEdge(edge.u, edge.v, (edge.weight) ? edge.weight : undefined);
                 }
             }
         }
@@ -186,13 +186,13 @@ export class Graph {
         var found = false;
         for (let edges of this.neighbors.get(vertex)) {
 
-            let neighborsEdges = this.neighbors.get(edges);
+            let neighborsEdges = this.neighbors.get(edges.v);
             for (let i = 0; i < neighborsEdges.length; i++) {
-                if (neighborsEdges[i] == vertex) {
+                if (neighborsEdges[i].v == vertex) {
                     found = true;
                 }
                 if (found) {
-                    neighborsEdges[i] = neighborsEdges[i + 1];
+                    neighborsEdges[i].v = neighborsEdges[i + 1].v;
                 }
             }
 
@@ -232,8 +232,8 @@ export class Graph {
         if (this.neighbors.has(v1) && this.neighbors.has(v2)) {
 
             let edges = this.neighbors.get(v1);
-            for (var i = edges.length; i >=0; i--) { 
-                if (edges[i] === v2) {
+            for (var i = edges.length; i >= 0; i--) { 
+                if (edges[i].v === v2) {
                     edges[i].splice(i, i);
                 }
             }
@@ -254,6 +254,28 @@ export class Graph {
 
     getSize() {
         return this.neighbors.keys().length;
+    }
+
+    getWeight(u, v) {
+        if (typeof u == 'number' && typeof v == 'number') {
+            if (u < 0 || u >= this.neighbors.size) {
+                console.log("Cannot get weight of edge with u because " + u + " is not within index bounds.");
+            }
+            if (v < 0 || v >= this.neighbors.size) {
+                console.log("Cannot get weight of edge with v because " + v + "is not within index bounds.");
+            }
+
+            u = this.vertexAt(u);
+            v = this.vertexAt(v);
+        }
+
+        for (let edge of this.neighbors.get(u)) {
+                if (edge.v == v) {
+                    return edge.weight;
+                }
+        }
+
+        return null;
     }
 
     isDisplayable () {
@@ -300,7 +322,7 @@ export class Graph {
     print() {
         var i = 0;
         this.neighbors.forEach((edges, vertex) => {
-            let edgesString = (edges.length == 0) ? "-" : edges.reduce((prev, curr) => prev.name + ", " + curr.name);
+            let edgesString = (edges.length == 0) ? "-" : edges.reduce((prev, curr) => (prev.v) ? prev.v.name : prev + ", " + curr.v.name);
             console.log("vertex[" + vertex.name + "]: x: " + vertex.x + ", y: " + vertex.y + " -> " + edgesString);
             i++;
         });
@@ -330,9 +352,9 @@ export class Graph {
         let neighbors = this.neighbors.get(vertex);
 
         for (let neighbor of neighbors) {
-            if (!visited[JSON.stringify(neighbor)]) {
-                parent[JSON.stringify(neighbor)] = JSON.stringify(vertex);
-                this.dfsRecursive(neighbor, parent, searchOrder, visited);
+            if (!visited[JSON.stringify(neighbor.v)]) {
+                parent[JSON.stringify(neighbor.v)] = JSON.stringify(vertex);
+                this.dfsRecursive(neighbor.v, parent, searchOrder, visited);
             }
         }
     }
@@ -356,16 +378,107 @@ export class Graph {
             let neighbors = this.neighbors.get(u);
 
             for (let neighbor of neighbors) {
-                if (!visited[JSON.stringify(neighbor)]) {
-                    searchOrder.push(neighbor);
-                    queue.push(neighbor);
-                    parents[JSON.stringify(neighbor)] = JSON.stringify(u);
-                    visited[JSON.stringify(neighbor)] = true;
+                if (!visited[JSON.stringify(neighbor.v)]) {
+                    searchOrder.push(neighbor.v);
+                    queue.push(neighbor.v);
+                    parents[JSON.stringify(neighbor.v)] = JSON.stringify(u);
+                    visited[JSON.stringify(neighbor.v)] = true;
                 }
             }
         }
 
         return new SearchTree(v, parents, searchOrder);
+    }
+
+    getMinimumSpanningTree (startingVertex) {
+        if (typeof startingVertex === 'number') {
+            startingVertex = vertexAt(startingVertex);
+
+            if (startingVertex === null) {
+                throw new TypeError("Vertex must be a vertex or an index of " +
+                "a vertix in the graph to get a minimum spanning tree.");
+            }
+        }
+
+        let parents = {};
+        parents[JSON.stringify(startingVertex)] = -1;
+        var totalWeight = 0;
+
+        let T = [];
+        T.push(startingVertex);
+
+        while(T.length < getSize()) {
+            let u = -1, v = -1;
+            let currentMinCost = Number.MAX_VALUE;
+            for (let i of T) {
+                for (let edge of this.neighbors.get(i)) {
+                    if (!T.includes(edge.v) && (edge.weight < currentMinCost)) {
+                        currentMinCost = edge.weight;
+                        u = i;
+                        v = edge.v;
+                    }
+                }
+            }
+
+            if (v == -1) {
+                break;
+            } else {
+                T.push(v);
+                parents[JSON.stringify(v)] = JSON.stringify(u);
+            }
+            totalWeight += currentMinCost;
+        }
+
+        return new MST(startingVertex, parents, T, totalWeight);
+    }
+
+    getShortestPath(sourceVertex) {
+
+        if (typeof startingVertex === 'number') {
+            startingVertex = vertexAt(startingVertex);
+
+            if (startingVertex === null) {
+                throw new TypeError("Vertex must be a vertex or an index of " +
+                "a vertix in the graph to get its shortest path.");
+            }
+        }
+
+        cost = new Array(this.getSize()).fill(Number.MAX_VALUE);
+        cost[JSON.stringify(sourceVertex)] = 0;
+
+        let parents = new Array(this.getSize());
+        parents[JSON.stringify(sourceVertex)] = -1;
+
+        let T = [];
+
+        while (T.length < this.getSize()) {
+            var u = -1;
+            var currentMinCost = Number.MAX_VALUE;
+
+            for (let [vertex, edges] of this.neighbors) {
+                if (!T.includes(vertex) && cost[JSON.stringify(vertex)] < currentMinCost) {
+                    currentMinCost = cost[JSON.stringify(vertex)];
+                    u = vertex;
+                }
+            }
+
+            if (u == -1) {
+                break;
+            } else {
+                T.push(u);
+            }
+
+            for (let edges of this.neighbors.get(u)) {
+                for (let edge of edges) {
+                    if (!T.includes(edge.v) && cost[JSON.stringify(edge.v)] > cost[JSON.stringify(u)] + edge.weight) {
+                        cost[JSON.stringify(edge.v)] = cost[JSON.stringify(u)] + edge.weight;
+                        parents[JSON.stringify(edge.v)] = JSON.stringify(u);
+                    }
+                }
+            }
+        }
+
+        return ShortestPath(sourceVertex, parents, T, cost);
     }
 }
 
@@ -436,6 +549,45 @@ class SearchTree {
         for (let vertex in this.parents) {
             console.log("(" + this.parents[vertex] + ", " + vertex + ")");
         }
+    }
+}
+
+class MST extends SearchTree {
+    totalWeight;
+
+    constructor(root, parents, searchOrder, totalWeight) {
+        super(root, parents, searchOrder);
+        this.totalWeight = totalWeight;
+    }
+
+    getTotalWeight() {
+        return this.totalWeight;
+    }
+}
+
+class ShortestPath extends SearchTree {
+    cost = [];
+
+    constructor(root, parents, searchOrder, cost) {
+        super(root, parents, searchOrder);
+        this.cost = cost;
+    }
+
+    getCost(v) {
+        if (typeof v === 'number') {
+            v = vertexAt(startingVertex);
+
+            if (v === null) {
+                throw new TypeError("Vertex must be a vertex or an index of " +
+                "a vertix in the graph to get its cost.");
+            }
+        }
+
+        return cost[JSON.stringify(v)];
+    }
+
+    getAllCost() {
+        return [...cost];
     }
 }
 

@@ -5,8 +5,6 @@ import Graph from '../graph/graph.js';
 var axis;
 var oppAxis;
 
-const canvas = document.getElementById('graphView');
-
 /**
  * Sorts an array by the int value of the specified axis, overriding the other axis to display ordering.
  * 
@@ -19,7 +17,7 @@ export async function mergeSort(graph, theAxis) {
     }
 
     if (!(graph instanceof Graph && graph.isDisplayable())) {
-        throw new TypeError("Every object must have 'x' and 'y' co-ordinates.");
+        throw new TypeError("Every object must have 'x' and 'y' co-ordinate properties.");
     }
     
     axis = theAxis;

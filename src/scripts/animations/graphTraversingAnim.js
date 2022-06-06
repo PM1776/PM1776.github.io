@@ -8,17 +8,19 @@ const COLOR = 'blue';
  * 
  * @param {*} searchTree the SearchTree object returned from a Graph.dfs() or Graph.bfs().
  */
-async function depthFirstAnim (searchTree, searchingFor) {
+async function depthFirstAnim (searchTree, searchingFor, graph) {
     if (!searchTree instanceof SearchTree) {
-        throw new TypeError("Only displays results from a SearchTree class, returned from a Graph.dfs or Graph.bfs");
+        throw new TypeError("Only displays results from a SearchTree class, returned from a Graph.dfs");
     }
 
     let parents = searchTree.getParents();
     var found = false;
     for (let vertex in parents) {
-        let result = drawDirectionalEdgeAnim(JSON.parse(parents[vertex]), JSON.parse(vertex), true, .93);
-        drawVertex(JSON.parse(parents[vertex]), COLOR);
-        drawVertex(JSON.parse(vertex), COLOR);
+        let v1 = JSON.parse(parents[vertex]), v2 = JSON.parse(vertex);
+        let result = drawDirectionalEdgeAnim(v1, v2, true, .93, undefined, undefined, undefined, 
+            graph.getWeight(v1, v2));
+        drawVertex(v1, COLOR);
+        drawVertex(v2, COLOR);
         await result;
 
         if (vertex === JSON.stringify(searchingFor)) {
@@ -38,9 +40,9 @@ async function depthFirstAnim (searchTree, searchingFor) {
  * 
  * @param {*} searchTree the SearchTree object returned from a Graph.dfs() or Graph.bfs().
  */
-async function breadthFirstAnim (searchTree, searchingFor) {
+async function breadthFirstAnim (searchTree, searchingFor, graph) {
     if (!searchTree instanceof SearchTree) {
-        throw new TypeError("Only displays results from a SearchTree class, returned from a Graph.dfs or Graph.bfs");
+        throw new TypeError("Only displays results from a SearchTree class, returned from a Graph.bfs");
     }
 
     let parents = searchTree.getParents();
@@ -51,11 +53,11 @@ async function breadthFirstAnim (searchTree, searchingFor) {
         // stores the level's parents as keys in searchLevel until the vertice's parent is no longer in searchLevel
         // (no longer at that level)
         if (!searchLevel.has(parents[vertex])) {
-            await visualizeLevel(searchLevel, searchingFor);
+            await visualizeLevel(searchLevel, graph);
         }
-        if (vertex === JSON.stringify(searchingFor)) {
-            searchLevel.get(parents[vertex]).push(vertex);
-            await visualizeLevel(searchLevel, searchingFor);
+        if (vertex === JSON.stringify(searchingFor)) { // will never visualize level twice, as it typically
+            searchLevel.get(parents[vertex]).push(vertex);          // visualizes once no longer on the level
+            await visualizeLevel(searchLevel, graph);
             showResults(searchTree, searchingFor, 8000);
             return;
         }
@@ -64,7 +66,7 @@ async function breadthFirstAnim (searchTree, searchingFor) {
     }
 
     // empties searchLevel to display the last level
-    await visualizeLevel(searchLevel);
+    await visualizeLevel(searchLevel, graph);
 
     showNotification("No path found.", 3000);
 
@@ -73,14 +75,16 @@ async function breadthFirstAnim (searchTree, searchingFor) {
      * deletes keys once finishing their iteration, and then indirectly sets its values as new keys for the
      * next level.
      */ 
-    async function visualizeLevel (searchLevel, searchingFor) {
+    async function visualizeLevel (searchLevel, graph) {
         let result;
         let nextLevel = [];
         for (let [parent, vertices] of searchLevel) {
             for (let vertex of vertices) {
-                result = drawDirectionalEdgeAnim(JSON.parse(parent), JSON.parse(vertex), true, .95);
-                drawVertex(JSON.parse(parent), COLOR);
-                drawVertex(JSON.parse(vertex), COLOR);
+                let v1 = JSON.parse(parent), v2 = JSON.parse(vertex);
+                result = drawDirectionalEdgeAnim(v1, v2, true, .95, undefined,
+                    undefined, undefined, graph.getWeight(graph.hasVertex(v1), graph.hasVertex(v2)));
+                drawVertex(v1, COLOR);
+                drawVertex(v2, COLOR);
                 nextLevel.push(vertex);
             }
             searchLevel.delete(parent);
@@ -96,10 +100,11 @@ async function breadthFirstAnim (searchTree, searchingFor) {
 
 function showResults (searchTree, searchingFor, time) {
     let path = searchTree.getPath(searchingFor);
-    let pathString = searchTree.getRoot().name + " -> ";
-    pathString += (path.length == 1) ? JSON.parse(path[0]).name :
-        path.reduce((prev, val, i) => JSON.parse(val).name + " -> " + ((i == 1) ? JSON.parse(prev).name : prev));
-    showNotification(pathString + "</br>Search Count: " + path.length, time);
+    let pathString = "<b>" + searchTree.getRoot().name + "</b> > ";
+    pathString += (path.length == 1) ? "<b>" + JSON.parse(path[0]).name + "</b>" :
+        path.reduce((prev, val, i) => "<b>" + JSON.parse(val).name + "</b> > " + 
+        ((i == 1) ? "<b>" + JSON.parse(prev).name + "</b>" : prev));
+    showNotification(pathString + "</br>Search Count: <b>" + path.length + "</b>", time);
 }
 
 export { depthFirstAnim, breadthFirstAnim };

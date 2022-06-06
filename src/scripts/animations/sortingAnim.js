@@ -1,4 +1,4 @@
-import { renderNewVertex, renderNewEdge, renderRemoveVertex, 
+import { TEXT_ABOVE_VERTEX, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y, drawVertices } from '../graph/graphView.js';
 
 var canvas = document.getElementById('graphView');
@@ -40,7 +40,7 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
         var gap = undefined;
         if (targets === true) {
             gap = (axis === 'y') ? 
-                canvas.clientHeight / points.length : 
+                canvas.clientHeight / points.length: 
                 canvas.clientWidth / points.length;
         }
 

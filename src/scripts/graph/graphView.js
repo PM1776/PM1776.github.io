@@ -12,6 +12,7 @@ const GRAD_BY_Y = 2;
 const GRAD_TO_VERTEX = .93;
 
 const ARROW_SIZE = 10;
+const TEXT_ABOVE_VERTEX = 26;
 
 // Functions to draw the graph on the canvas.
 
@@ -149,7 +150,8 @@ function drawVertex(v, color = 'black', gradient, withName) {
 function drawVertexName(v, font = '14px Arial', color = 'blue', withBackground) {
     if (withBackground) {
         ctx.fillStyle = '#f6f2f2';
-        ctx.fillRect(v.x - String(v.name).length * 3.6, v.y - 26, String(v.name).length * 7.2, 14);
+        ctx.fillRect(v.x - String(v.name).length * 3.6, v.y - TEXT_ABOVE_VERTEX, // x, y
+                     String(v.name).length * 7.2, TEXT_ABOVE_VERTEX - 12);       // w, h
     }
     
     ctx.fillStyle = color;
@@ -157,12 +159,6 @@ function drawVertexName(v, font = '14px Arial', color = 'blue', withBackground) 
     ctx.textAlign = 'center';
     ctx.fillText(v.name, v.x, v.y - 15);
     drawEdge({x: v.x, y: v.y}, {x: v.x, y: v.y - 12}, 'blue', null, 2);
-}
-
-function drawVerticesNames (vertices, font, color, withBackground) {
-    for (let v of vertices) {
-        drawVertexName(v, font, color, withBackground);
-    }
 }
 
 /**
@@ -183,6 +179,12 @@ function drawVertices (vertices, gradient, clear = true, color) {
     }    
 }
 
+function drawVerticesNames (vertices, font, color, withBackground) {
+    for (let v of vertices) {
+        drawVertexName(v, font, color, withBackground);
+    }
+}
+
 /**
  * 
  * @param {*} v1 
@@ -191,7 +193,8 @@ function drawVertices (vertices, gradient, clear = true, color) {
  * @param {*} verticesColor the color to draw the vertices of the incident edge. It is by default
  *      set to <b>color</b>, with a value of 'null' to not render them.
  */
-function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineWidth = 2) {
+function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineWidth = 2, weight) {
+
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = edgeColor;
     ctx.beginPath();
@@ -204,10 +207,44 @@ function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineW
         drawVertex(v1, verticesColor);
         drawVertex(v2, verticesColor);
     }
+
+    if (weight) drawEdgeWeight(v1, v2, weight, edgeColor);
 }
 
-function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color) {
-    drawEdge(v1, v2, color, verticesColor);
+function drawEdgeWeight (v1, v2, weight, color = 'black') {
+    let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
+    let halfLength = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y)) / 2;
+    let center = {
+        x: v2.x - halfLength * Math.cos(angle),
+        y: v2.y - halfLength * Math.sin(angle)
+    };
+
+    // flips angle 180 for readablility if downside
+    if (angle < -(Math.PI / 2) || (angle > (Math.PI / 2))) {
+        angle += Math.PI;
+    }
+    
+    ctx.save();
+
+    ctx.translate(center.x, center.y);
+    ctx.rotate(angle);
+    ctx.translate(-center.x, -center.y);
+
+    ctx.fillStyle = 'white';
+    ctx.fillRect(center.x - String(String(weight)).length * 4, center.y - 5,
+                String(weight).length * 8, 10);
+
+    ctx.fillStyle = color;
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(weight, center.x, center.y + 5);
+
+    ctx.restore();
+    
+}
+
+function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color, weight) {
+    drawEdge(v1, v2, color, verticesColor, undefined, weight);
 
     let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
     let triangleTip = {x: v2.x - POINT_RADIUS * Math.cos(angle), y: v2.y - POINT_RADIUS * Math.sin(angle)};
@@ -223,6 +260,8 @@ function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color) {
     ctx.strokeStyle = 'blue';
     ctx.lineWidth = 2;
     ctx.stroke();
+
+    drawEdgeWeight(v1, v2, weight);
 }
 
 /**
@@ -239,15 +278,16 @@ function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color) {
  * @returns 
  */
 function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercentage = .9,
-    edgeColor = 'black', verticesColor = edgeColor, arrowColor = 'blue') {
+    edgeColor = 'black', verticesColor = edgeColor, arrowColor = 'blue', weight) {
 
-    drawEdge(v1, v2, edgeColor, verticesColor);
+    drawEdge(v1, v2, edgeColor, verticesColor, undefined, weight);
 
     return new Promise(resolve => {
 
         // point just before the vertex radius on the edge
         let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
         let lengthDownArrow = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y));
+        let totalLength = lengthDownArrow;
         let triangleTip;
 
         let arrowCanvas = document.createElement("canvas");
@@ -288,20 +328,23 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
             actx.stroke();
             
             // Gradiant from the arrow to the end of the edge
+            let coloredLength = totalLength - lengthDownArrow;
             var lingrad2 = ctx.createLinearGradient(triangleTip.x, triangleTip.y,
-                triangleTip.x - 20 * Math.cos(angle), triangleTip.y - 20 * Math.sin(angle));
+                triangleTip.x - coloredLength * Math.cos(angle), triangleTip.y - coloredLength * Math.sin(angle));
             lingrad2.addColorStop(0, arrowColor);
-            lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');    
+            lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-            actx.strokeStyle = lingrad2;
+            //actx.strokeStyle = lingrad2;
             actx.lineWidth = 2;
             actx.beginPath();
             actx.moveTo(triangleTip.x, triangleTip.y);
-            actx.lineTo(triangleTip.x - 20 * Math.cos(angle),
-                       triangleTip.y - 20 * Math.sin(angle));
+            actx.lineTo(triangleTip.x - coloredLength * Math.cos(angle),
+                       triangleTip.y - coloredLength * Math.sin(angle));
 
             actx.closePath();
             actx.stroke();
+
+            drawEdgeWeight(v1, v2, weight);
             
             if (lengthDownArrow > POINT_RADIUS) {
                 drawVertexName(v1, undefined, undefined, true);
@@ -345,11 +388,11 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
 
             switch (edgeDrawing) {
                 case 1:
-                    drawDirectionalEdge(vertex, neighbor); break;
+                    drawDirectionalEdge(vertex, neighbor.v, undefined, undefined, neighbor.weight); break;
                 case 2:
-                    drawDirectionalEdgeAnim(vertex, neighbor); break;
+                    drawDirectionalEdgeAnim(vertex, neighbor.v, undefined, undefined, undefined, undefined, undefined, neighbor.weight); break;
                 default:
-                    drawEdge(vertex, neighbor);
+                    drawEdge(vertex, neighbor.v, undefined, undefined, undefined, neighbor.weight);
             }
         }
         drawVertex(vertex, undefined, undefined);
@@ -366,6 +409,6 @@ function showNotification (message, time) {
     }, time);
 }
 
-export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, showNotification,
+export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, TEXT_ABOVE_VERTEX, showNotification,
     clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph };
