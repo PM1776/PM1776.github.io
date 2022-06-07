@@ -47,6 +47,7 @@ window.addEventListener("load", async (e) => {
     canvas.addEventListener("touchend", addRemove);
     canvas.addEventListener("mousemove", moveEdge);
     canvas.addEventListener("mouseup", dropEdge);
+    
     document.getElementById('closest').addEventListener("click", findClosestPair);
     document.getElementById('byX').addEventListener("click", beginMergeSort);
     document.getElementById('byY').addEventListener("click", beginMergeSort);
@@ -56,7 +57,8 @@ window.addEventListener("load", async (e) => {
     await resize(e);
 
     let mapWidth, mapHeight;
-    let scale = Math.min(canvas.width / (mapWidth = 780), canvas.height / (mapHeight = 430));
+    var dpr = window.devicePixelRatio;
+    let scale = Math.min(canvas.width / ((mapWidth = 780) * dpr), canvas.height / ((mapHeight = 430) * dpr));
 
     let vertices = [{name: "Seattle", x: 125, y: 60},
         {name: "San Francisco", x: 100, y: 220},
@@ -90,10 +92,11 @@ window.addEventListener("load", async (e) => {
 
     // Scales and centers
     for (let i = 0; i < vertices.length; i++) {
-        let x = Math.floor(Object.getOwnPropertyDescriptor(vertices[i], 'x').value * scale);
-        let y = Math.floor(Object.getOwnPropertyDescriptor(vertices[i], 'y').value * scale);
-        x = (canvas.width / 2) - (mapWidth * scale / 2) + x;
-        y = (canvas.height / 2) - (mapHeight * scale / 2) + y;
+        let x = Object.getOwnPropertyDescriptor(vertices[i], 'x').value * scale;
+        let y = Object.getOwnPropertyDescriptor(vertices[i], 'y').value * scale;
+        console.log((canvas.width / 2) + " - " + (mapWidth * scale / 2) + " + " + x);
+        x = Math.floor(((canvas.width / 2) / dpr - (mapWidth * scale / 2) + x));
+        y = Math.floor(((canvas.height / 2) / dpr - (mapHeight * scale / 2) + y));
         Object.defineProperties(vertices[i], {x: {value: x}, y: {value: y}});
     }
 

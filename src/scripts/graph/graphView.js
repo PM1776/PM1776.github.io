@@ -54,6 +54,7 @@ function resizeAnim(targetX, targetY) {
                 requestAnimationFrame(resize);
             } else {
                 resolve();
+                scaleToDPR();
             }
         }
         requestAnimationFrame(resize);
@@ -63,6 +64,28 @@ function resizeAnim(targetX, targetY) {
 function resizeInstantly (targetX, targetY) {
     canvas.width = targetX;
     canvas.height = targetY;
+
+    scaleToDPR(targetX, targetY);
+}
+
+function scaleToDPR (x, y) {
+    // Get the DPR and size of the canvas
+    var dpr = window.devicePixelRatio;
+    if (arguments.length == 0) {
+        x = canvas.getBoundingClientRect().width;
+        y = canvas.getBoundingClientRect().height;
+    }
+
+    // Set the "actual" size of the canvas
+    canvas.width = x * dpr;
+    canvas.height = y * dpr;
+
+    // Scale the context to ensure correct drawing operations
+    ctx.scale(dpr, dpr);
+
+    // Set the "drawn" size of the canvas
+    canvas.style.width = x + 'px';
+    canvas.style.height = y + 'px';
 }
 
 function renderNewVertex(v, graph) {
