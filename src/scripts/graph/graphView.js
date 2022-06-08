@@ -88,6 +88,12 @@ function scaleToDPR (x, y) {
     canvas.style.height = y + 'px';
 }
 
+/**
+ * Adds a new vertex and draws the graph again.
+ * 
+ * @param {*} v the vertex to add.
+ * @param {*} graph the graph to add it to.
+ */
 function renderNewVertex(v, graph) {
     checkIfGraph(graph);
     graph.addVertex(v);

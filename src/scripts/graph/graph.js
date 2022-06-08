@@ -125,8 +125,8 @@ export class Graph {
 
             if (this.neighbors.has(u)) {
 
-                this.neighbors.get(u).push((!weight) ? {v: v} : {v: v, weight: weight});
-                this.neighbors.get(v).push((!weight) ? {v: u} : {v: u, weight: weight});
+                this.neighbors.get(u).push({v: v, weight: (weight) ? weight : null});
+                this.neighbors.get(v).push({v: u, weight: (weight) ? weight : null});
 
                 return true;
             }
@@ -145,8 +145,8 @@ export class Graph {
             let v1 = this.vertexAt(u);
             let v2 = this.vertexAt(v);
 
-            this.neighbors.get(v1).push((!weight) ? {v: v2} : {v: v2, weight: weight});
-            this.neighbors.get(v2).push((!weight) ? {v: v1} : {v: v1, weight: weight});
+            this.neighbors.get(v1).push({v: v2, weight: (weight) ? weight : null});
+            this.neighbors.get(v2).push({v: v1, weight: (weight) ? weight : null});
 
             return true;
         }
@@ -317,6 +317,33 @@ export class Graph {
         }
 
         return null;
+    }
+
+    setVertexName(v, name) {
+        if (this.hasVertex(v)) Object.defineProperty(v, 'name', {value: name});
+    }
+
+    setWeight(u, v, weight) {
+        if (typeof u == 'number' && typeof v == 'number') {
+            if (u < 0 || u >= this.neighbors.size) {
+                console.log("Cannot get weight of edge with u because " + u + " is not within index bounds.");
+            }
+            if (v < 0 || v >= this.neighbors.size) {
+                console.log("Cannot get weight of edge with v because " + v + "is not within index bounds.");
+            }
+
+            u = this.vertexAt(u);
+            v = this.vertexAt(v);
+        }
+
+        for (let edge of this.neighbors.get(u)) {
+            if (edge.v == v) {
+                Object.defineProperty(edge, 'weight', {value: weight});
+                return true;
+            }
+        }
+
+        return false;
     }
 
     print() {

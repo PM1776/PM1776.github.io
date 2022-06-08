@@ -1,7 +1,7 @@
 import Graph from './graph/graph.js';
 import { MOBILE, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawEdge, drawGraph, drawVertices, 
-    POINT_RADIUS, VIEW_CHANGES, clear, drawDirectionalEdgeAnim, showNotification } from './graph/graphView.js';
+    POINT_RADIUS, VIEW_CHANGES, clear, drawDirectionalEdgeAnim, showNotification, TEXT_ABOVE_VERTEX } from './graph/graphView.js';
 import { mergeSort } from './algorithms/mergeSort.js';
 import { findClosestPairIn } from './algorithms/closestPairOfPoints.js';
 import { depthFirstAnim, breadthFirstAnim } from './animations/graphTraversingAnim.js';
@@ -53,6 +53,10 @@ window.addEventListener("load", async (e) => {
     document.getElementById('byY').addEventListener("click", beginMergeSort);
     document.getElementById('search').addEventListener("click", traverseGraph);
 
+    for (let s of ['byDepth', 'byBreadth', 'byMinimumSpanningTree', 'byShortestPaths']) {
+        document.getElementById(s).addEventListener("click", changeSearchType);
+    }
+
     defaultLegend();
     await resize(e);
 
@@ -94,7 +98,6 @@ window.addEventListener("load", async (e) => {
     for (let i = 0; i < vertices.length; i++) {
         let x = Object.getOwnPropertyDescriptor(vertices[i], 'x').value * scale;
         let y = Object.getOwnPropertyDescriptor(vertices[i], 'y').value * scale;
-        console.log((canvas.width / 2) + " - " + (mapWidth * scale / 2) + " + " + x);
         x = Math.floor(((canvas.width / 2) / dpr - (mapWidth * scale / 2) + x));
         y = Math.floor(((canvas.height / 2) / dpr - (mapHeight * scale / 2) + y));
         Object.defineProperties(vertices[i], {x: {value: x}, y: {value: y}});
@@ -172,7 +175,19 @@ function addRemove(e) {
             } else { // or add vertex
                 let inOtherPoint = graph.hasVertexInRadius({x: x, y: y}, POINT_RADIUS * 2);
                 if (!inOtherPoint) {
-                    renderNewVertex( {name: newPointName++, x: x, y: y}, graph);
+                    let newPoint = {name: null, x: x, y: y};
+                    renderNewVertex(newPoint, graph);
+
+                    // will run when both the user clicks away and hits 'enter'
+                    let blur = () => {
+                        if (newPoint.name == null) graph.removeVertex(newPoint);
+                        drawGraph(graph);
+                    }
+                    
+                    let enter = (inputValue) => {
+                        graph.setVertexName(newPoint, inputValue);
+                    }
+                    showGraphInput(x, headerHeight + legendHeight + y - TEXT_ABOVE_VERTEX, newPointName++, blur, enter);
                 } else {
                     showNotification("<strong>A point must not overlap another.</strong> Space is nice.",
                         3000);
@@ -209,33 +224,59 @@ function moveEdge (e) {
     draggingEdgeAnim(graph, edgeStartpt, point);
 }
 
-function dropEdge (e) {
+async function dropEdge (e) {
     if (!edgeStartpt) return;
 
     let point = {name: '-',
                  x: e.clientX - CANVAS_OFFSET,
                  y: e.clientY - headerHeight - legendHeight - CANVAS_OFFSET};
-    let v = graph.hasVertexInRadius(point, POINT_RADIUS);
+    let secondPoint = graph.hasVertexInRadius(point, POINT_RADIUS);
+
+    let vertexStarted = edgeStartpt;
+    edgeStartpt = null;
 
     // dropped on same vertex, do nothing
-    if (v === edgeStartpt) {
+    if (secondPoint === vertexStarted) {
         drawGraph(graph, true);
-        edgeStartpt = null;
         return;
     }
 
-    if (v) {
-        graph.addEdge(edgeStartpt, v);
-        drawGraph(graph, true);
+    if (secondPoint) {
+        graph.addEdge(vertexStarted, secondPoint);
+        getInputForEdge(vertexStarted, secondPoint);
     } else {
+
         Object.defineProperty(point, 'name', {value: newPointName++});
-        graph.addVertex(point);
-        graph.addEdge(edgeStartpt, point);
-        drawGraph(graph, true);
+        renderNewVertex(point, graph);
+        graph.addEdge(vertexStarted, point);
+
+        // blur will run when both the user clicks away and hits 'enter'
+        let blur = () => {
+            if (point.name == null) graph.setVertexName(point, newPointName++);
+            drawGraph(graph);
+        }, enter = (inputValue) => { 
+            graph.setVertexName(point, inputValue);
+        };
+        await showGraphInput(point.x, headerHeight + legendHeight + point.y - TEXT_ABOVE_VERTEX, 
+            newPointName++, blur, enter);
+        await getInputForEdge(vertexStarted, point);
+        drawGraph(graph);
         graph.print();
     }
 
-    edgeStartpt = null;
+    async function getInputForEdge (v1, v2) {
+        let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
+        let halfLength = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y)) / 2;
+        let x = v2.x - halfLength * Math.cos(angle);
+        let y = v2.y - halfLength * Math.sin(angle) + headerHeight + legendHeight;
+        let blur = () => {
+            drawGraph(graph);
+        };
+        let enter = (inputValue) => {
+            graph.setWeight(v1, v2, inputValue);
+        };
+        await showGraphInput(x, y, '0', blur, enter);
+    }
 }
 
 async function beginMergeSort(e) {
@@ -281,13 +322,7 @@ async function traverseGraph () {
 
     let starting = document.getElementById("start").value;
     let searchingFor = document.getElementById("searchingFor").value;
-    let search;
-    for (let radio of document.getElementsByName("searchType")) {
-        if (radio.checked) {
-            search = radio.id;
-            break;
-        }
-    }
+    let search = document.getElementById('searchType').innerHTML;
 
     if (!((starting = graph.hasVertex(starting)) && (searchingFor = graph.hasVertex(searchingFor)))) {
         showNotification("Could not find the starting or searching point in the graph.", 5000);
@@ -305,7 +340,7 @@ async function traverseGraph () {
 
     disableButtons();
     drawGraph(graph);
-    if (search == 'depth') {
+    if (search == 'Depth-First Search') {
         await depthFirstAnim(graph.dfs(starting), searchingFor, graph);
     } else {
         await breadthFirstAnim(graph.bfs(starting), searchingFor, graph);
@@ -363,6 +398,51 @@ function enableButtons () {
 function collapseNavbarToggle () {
     document.getElementById('navbarNavAltMarkup').classList.remove("show");
     document.getElementsByClassName('navbar-toggler')[0].classList.add("collapsed");
+}
+
+function changeSearchType (e) {
+    document.getElementById('searchType').innerHTML = e.target.innerHTML;
+}
+
+/**
+ * This method creates a text input at a specified x and y (centers on x) and runs the passed in
+ * methods when the clicks away (blur) and hits the 'enter' key (blur and enter). The onblur event handler, 
+ * by default, runs before an element is removed, so when removing the element after pressing the 'enter' it, it
+ * will run again. Therefore, it may be important to provide conditions in the blur parameter that check
+ * if the enter parameter has run so as to not provide the same effect as when simply blurred away.
+ * 
+ * @param {*} x The 'x' co-ordinate the text input centers on.
+ * @param {*} y The 'y' co-ordinate the text input is set to.
+ * @param {*} defaultValue The default value of the text input.
+ * @param {*} blur A function that runs when the input's onblur event handler runs.
+ * @param {*} enter A function that runs with a parameter of the text input value when the 'enter' key is pressed.
+ */
+async function showGraphInput (x, y, defaultValue, blur, enter) {
+    return new Promise(resolve => {
+        let popup = document.createElement("input");
+        popup.value = defaultValue;
+        popup.type = 'text';
+        popup.size = 8;
+        popup.classList.add('poppin');
+
+        document.body.appendChild(popup);
+        popup.style.left = x - (popup.clientWidth / 2) + 'px';
+        popup.style.top = y + 'px';
+
+        popup.onblur = () => {
+            document.body.removeChild(popup);
+            blur();
+        };
+        popup.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                enter(popup.value);
+                popup.blur();
+                e.stopPropagation();
+                resolve();
+            }
+        };
+        setTimeout(() => popup.focus(), 10);
+    });
 }
 
 document.getElementsByClassName('navbar-brand')[0].addEventListener("click", () => {
