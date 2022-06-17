@@ -17,7 +17,7 @@ export function visualizeBruteCompare (points, closestPair, p1, p2, low, high) {
 
         drawVertices(points, undefined, true);
 
-        drawEdge(closestPair.p1, closestPair.p2, closestPairColor, );
+        drawEdge(closestPair.p1, closestPair.p2, closestPairColor);
         drawEdge(p1, p2, comparingColor);
 
         drawDividers(points[(low === 0) ? 0 : low - 1].x, points[high].x);

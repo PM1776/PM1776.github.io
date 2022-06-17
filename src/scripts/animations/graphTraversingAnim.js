@@ -1,5 +1,5 @@
 import { SearchTree } from '../graph/graph.js';
-import { clear, drawDirectionalEdgeAnim, drawVertex, showNotification } from '../graph/graphView.js';
+import { drawDirectionalEdgeAnim, drawVertex, drawVertices, showNotification } from '../graph/graphView.js';
 
 const COLOR = 'blue';
 
@@ -18,7 +18,7 @@ async function depthFirstAnim (searchTree, searchingFor, graph) {
     for (let vertex in parents) {
         let v1 = JSON.parse(parents[vertex]), v2 = JSON.parse(vertex);
         let result = drawDirectionalEdgeAnim(v1, v2, true, .93, undefined, undefined, undefined, 
-            graph.getWeight(v1, v2));
+            graph.getWeight(graph.hasVertex(v1), graph.hasVertex(v2)));
         drawVertex(v1, COLOR);
         drawVertex(v2, COLOR);
         await result;
@@ -98,6 +98,36 @@ async function breadthFirstAnim (searchTree, searchingFor, graph) {
     }
 }
 
+async function minimumSpanningTreeAnim (searchTree, graph) {
+    if (!searchTree instanceof SearchTree) {
+        throw new TypeError("Only displays results from a SearchTree class returned from Graph.");
+    }
+
+    let parents = searchTree.getParents();
+
+    let result = null;
+    for (let vertex in parents) {
+        let v1 = JSON.parse(parents[vertex]), v2 = JSON.parse(vertex);
+        result = drawDirectionalEdgeAnim(v1, v2, true, .95, undefined,
+            undefined, undefined, graph.getWeight(graph.hasVertex(v1), graph.hasVertex(v2)));
+    }
+
+    await result;
+    drawVertices(graph.getVertices(), undefined, false);
+}
+
+async function shortestPathAnim (searchTree, graph) {
+    let parents = searchTree.getParents();
+    for (let vertex in parents) {
+        let v1 = JSON.parse(parents[vertex]), v2 = JSON.parse(vertex);
+        drawDirectionalEdgeAnim(v1, v2, true, .89, undefined, undefined, undefined, 
+            graph.getWeight(graph.hasVertex(v1), graph.hasVertex(v2)));
+        drawVertex(v1, COLOR);
+        drawVertex(v2, COLOR);
+        await new Promise(resolve => setTimeout(() => resolve(), 110));
+    }
+}
+
 function showResults (searchTree, searchingFor, time) {
     let path = searchTree.getPath(searchingFor);
     let pathString = "<b>" + searchTree.getRoot().name + "</b> > ";
@@ -107,4 +137,4 @@ function showResults (searchTree, searchingFor, time) {
     showNotification(pathString + "</br>Search Count: <b>" + path.length + "</b>", time);
 }
 
-export { depthFirstAnim, breadthFirstAnim };
+export { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim };

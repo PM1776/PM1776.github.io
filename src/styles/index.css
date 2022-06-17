@@ -7,7 +7,10 @@ html, body {
     color: white;
 }
 
-.dropdown {
+.findPathItems {
+    background-color: #0b56c4;
+}
+.dropdown { /* for sorting dropdown */
    display: grid;
 }
 .dropdown-menu {
@@ -22,6 +25,17 @@ html, body {
 #searchTypeDropdownMenu {
     position: absolute;
 }
+.form-control {
+    flex: 0 0 auto;
+}
+input[type='text'] {
+    width: 125px;
+}
+input[id='searchingFor'] {
+    margin: 0px 10px;
+    width: 10px;
+}
+
 #graphView {
     box-sizing: border-box;
 }
@@ -119,6 +133,11 @@ canvas {
     background-size: cover;
 }
 
+.mouseWheel {
+    background: url("../resources/mouseWheelIcon.png");
+    background-size: cover;
+}
+
 .yellow {
     background-color: yellow;
 }
@@ -151,22 +170,6 @@ canvas {
     right: 16px;
 }
 
-form {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: ce;
-}
-
-input[type='text'] {
-    margin: 0px 10px;
-}
-
-form div label { /* radio button labels */
-    margin-left: 2px;
-    margin-right: 10px;
-}
-
-.poppin {
+.poppin { /* text input popup */
     position: absolute;
 }

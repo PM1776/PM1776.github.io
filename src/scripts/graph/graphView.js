@@ -5,11 +5,17 @@ const ctx = canvas.getContext("2d");
 
 const MOBILE = mobileCheck();
 
-const POINT_RADIUS = (MOBILE) ? 10 : 5;
+const POINT_RADIUS = (MOBILE) ? 10 : 6;
 const VIEW_CHANGES = 1000;
 const GRAD_BY_X = 1;
 const GRAD_BY_Y = 2;
 const GRAD_TO_VERTEX = .93;
+const EDGE_FONT = '14px Arial';
+const VERTEX_FONT = '14px Arial';
+/** The size at which a pixel is displayed on the monitor. The #graphView canvas negates this by
+ * multiplying its actual size by the DPR but fitting it into the according smaller size, and scales 
+ * all drawing by the DPR.
+ * @see {@link scaleToDPR} */
 const DPR = window.devicePixelRatio;
 
 const ARROW_SIZE = 10;
@@ -76,37 +82,36 @@ function resizeAnim(targetX, targetY) {
  * @param {*} height the height to resize to.
  */
 function resizeInstantly (width, height) {
-    canvas.width = width;
-    canvas.height = height;
-
-    ctx.beginPath();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = 'blue';
-    console.log(parseInt(canv.style.width) + ", " + parseInt(canv.style.height));
-    ctx.fillRect(20, 20, 40, 40);
-    ctx.closePath();
-
     scaleToDPR(width, height);
 }
 
 /**
- * Scales a canvas' width and height by the devicePixelRatio, and DPR it in the designated
- * width and height through styling.
+ * Sizes a canvas by the specified width and height multiplied by the devicePixelRatio, and puts it in the 
+ * designated display width and height through styling to draw per pixel on the device despite the 
+ * monitor's set pixel ratio.
  * 
  * @param {*} width the width to 'place' the canvas in. If not specified, defaults to #graphView width.
  * @param {*} height the height to 'place' the canvas in. If not specified, defaults to #graphView height.
  * @param {*} canv the canvas to scale. If not specified, defaults to #graphView.
  */
 function scaleToDPR (width, height, canv) {
-    // Get the DPR and size of the canvas
-    if (arguments.length <= 2) canv = canvas;
-    switch (arguments.length) {
-        default:
-        case 0:
-            width = canv.getBoundingClientRect().width;
-        case 1:
-            height = canv.getBoundingClientRect().height;
-        case 3:
+    // check params
+    if (canv === undefined) {
+        canv = canvas;
+    } else if (!(canv instanceof HTMLCanvasElement)) {
+        throw new TypeError ("'canv' must be an HTMLCanvasElement.");
+    }
+    
+    if (width === undefined) {
+        width = canv.getBoundingClientRect().width;
+    } else if (isNaN(width)) {
+        throw new TypeError ("'width' must be a number.");
+    }
+
+    if (height === undefined) {
+        height = canv.getBoundingClientRect().height;
+    } else if (isNaN(height)) {
+        throw new TypeError ("'height' must be a number.");
     }
 
     // Set the "actual" size of the canvas
@@ -121,9 +126,18 @@ function scaleToDPR (width, height, canv) {
     canv.style.height = height + 'px';
 }
 
-//updateVertexWithoutEdges()
-
-function drawVertex(v, color = 'black', gradient, withName, translate) {
+/**
+ * Draws a vertex (point) on the canvas.
+ * 
+ * 
+ * @param {*} v the point object, with properties 'x', 'y', and optional 'name', if using the 'withName' parameter.
+ * @param {*} color the color to draw the vertex, defaulted to 'black'.
+ * @param {*} gradient an optional gradient fade to the vertex on the specified 'GRAD_BY_X' or 'GRAD_BY_Y' constants 
+ *      of this class, or a {@link GradObject} to specify the gradient begin point
+ * @param {*} withName 
+ * @param {*} translate 
+ */
+function drawVertex(v, color = 'black', gradObject, withName, translate) {
 
     ctx.save();
     if (translate) translateByScale(v);
@@ -137,34 +151,43 @@ function drawVertex(v, color = 'black', gradient, withName, translate) {
         drawVertexName(v);
     }
 
-    if (gradient === GRAD_BY_X) {
+    if (gradObject === GRAD_BY_X || gradObject === GRAD_BY_Y) { // works with older code
+        gradObject = new GradObject(gradObject);
+    }
 
-        var lingrad2 = ctx.createLinearGradient(0, v.y, v.x * GRAD_TO_VERTEX, v.y);
-        lingrad2.addColorSDPR(0, color);
-        lingrad2.addColorSDPR(1, 'rgba(0, 0, 0, 0)');
+    if (!(gradObject instanceof GradObject)) {
+        ctx.restore();
+        return;
+    }
+
+    if (gradObject.grad === GRAD_BY_X) {
+        var lingrad2 = ctx.createLinearGradient(gradObject.axisBegin, v.y, v.x * gradObject.gradPercentage, v.y);
+        lingrad2.addColorStop(0, color);
+        lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.strokeStyle = lingrad2;
 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(0, v.y);
-        ctx.lineTo(v.x * GRAD_TO_VERTEX, v.y);
+        ctx.moveTo(gradObject.axisBegin, v.y);
+        ctx.lineTo(v.x * gradObject.gradPercentage, v.y);
         ctx.stroke();
 
-    } else if (gradient === GRAD_BY_Y) {
+    } else if (gradObject.grad === GRAD_BY_Y) {
 
         // y grad goes to just above the vertex from the full canvas height
-        const GRAD_TO_VERTEX_INVERTED = 2 - GRAD_TO_VERTEX; 
+        const GRAD_TO_VERTEX_INVERTED = (gradObject.axisBegin < v.y) ? // checks if grad ends above or below vertex
+            gradObject.gradPercentage : 2 - gradObject.gradPercentage; 
 
-        var lingrad2 = ctx.createLinearGradient(v.x, canvas.height, v.x, v.y * GRAD_TO_VERTEX_INVERTED);
-        lingrad2.addColorSDPR(0, color);
-        lingrad2.addColorSDPR(1, 'rgba(0, 0, 0, 0)');
+        var lingrad2 = ctx.createLinearGradient(v.x, gradObject.axisBegin, v.x, v.y * GRAD_TO_VERTEX_INVERTED);
+        lingrad2.addColorStop(0, color);
+        lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.strokeStyle = lingrad2;
 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(v.x, canvas.height);
+        ctx.moveTo(v.x, gradObject.axisBegin);
         ctx.lineTo(v.x, v.y * GRAD_TO_VERTEX_INVERTED);
         ctx.stroke();
     }
@@ -172,7 +195,7 @@ function drawVertex(v, color = 'black', gradient, withName, translate) {
     ctx.restore();
 }
 
-function drawVertexName(v, font = '14px Arial', color = 'blue', withBackground) {
+function drawVertexName(v, font = VERTEX_FONT, color = 'blue', withBackground) {
 
     if (withBackground) {
         ctx.fillStyle = '#f6f2f2';
@@ -202,10 +225,6 @@ function drawVertexName(v, font = '14px Arial', color = 'blue', withBackground) 
         x: {value: (v.x / DPR) * (getReciprocal(scale) * DPR) - (pos.x * getReciprocal(scale) / DPR) }, 
         y: {value: (v.y / DPR) * (getReciprocal(scale) * DPR) - (pos.y * getReciprocal(scale) / DPR) }
     });
-
-    // pos.x = at.x - (at.x - pos.x) * amount;
-
-    console.log(v.x + ", " + v.y);
     graph.addVertex(v);
     drawGraph(graph, true);
 }
@@ -249,7 +268,7 @@ function drawVertices (vertices, gradient, clear = true, color) {
 
     for (let vertex of vertices) {
         drawVertex(vertex, color, gradient, true);
-    }    
+    }
 }
 
 function drawVerticesNames (vertices, font, color, withBackground, translate) {
@@ -321,7 +340,7 @@ function drawEdgeWeight (v1, v2, weight, color = 'black') {
                 String(weight).length * 8, 10);
 
     ctx.fillStyle = color;
-    ctx.font = '14px Arial';
+    ctx.font = EDGE_FONT;
     ctx.textAlign = 'center';
     ctx.fillText(weight, center.x, center.y + 5);
 
@@ -377,10 +396,11 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
         let triangleTip;
 
         let arrowCanvas = document.createElement("canvas");
-        scaleToDPR(canvas.width, canvas.height, arrowCanvas);
-        arrowCanvas.style.DPR = parseInt(window.getComputedStyle(canvas).border) + "px";
+        scaleToDPR(parseInt(canvas.style.width), parseInt(canvas.style.height), arrowCanvas);
+        arrowCanvas.style.top = parseInt(window.getComputedStyle(canvas).border) + "px";
         arrowCanvas.style.left = parseInt(window.getComputedStyle(canvas).border) + "px";
         arrowCanvas.style.position = 'absolute';
+        
         document.getElementById('canvasContainer').appendChild(arrowCanvas);
 
         let actx = arrowCanvas.getContext('2d');
@@ -523,22 +543,22 @@ const view = (() => {
         isDirty() { return dirty },
         update() {
             dirty = false;
-            m[3] = m[0] = DPR; //scale
+            m[3] = m[0] = DPR; // scale, which is always the devicePixelRatio (1.5 on my laptop)
             m[2] = m[1] = 0;
-            m[4] = defTranslate.x + pos.x;
-            m[5] = defTranslate.y + pos.y;
+            m[4] = defTranslate.x + pos.x; // translate x (automatically moves any pixel drawn by this amount)
+            m[5] = defTranslate.y + pos.y; // translate y
         },
         scaleAt(at, amount) { // at in screen coords
             if (dirty) { this.update() }
             scale *= amount;
-            console.log(at.x + " - (" + at.x + " - " + pos.x + ") * " + amount);
+            //console.log("pos.x = " + at.x + " - (" + at.x + " - " + pos.x + ") * " + amount);
             pos.x = at.x - (at.x - pos.x) * amount;
             pos.y = at.y - (at.y - pos.y) * amount;
-            console.log(scale);
-            console.log(pos.x);
+            //console.log("scale: " + scale);
+            //console.log("pos.x: " + pos.x);
             dirty = true;
         },
-        setDefaultTranslate(x, y) {
+        setDefaultTranslate(x, y) { // not used for now
             defTranslate = { x: x, y: y };
         },
     };
@@ -675,7 +695,7 @@ class Point {
     name = null;
 
     /**
-     * Can take up to three arguments: two arguments to set just the 'x' and 'y' properties, and three
+     * Can take up to three arguments: two arguments to set the 'x' and 'y' properties, and three
      * to set the 'x,' 'y,' and 'name' properties.
      * 
      * @param {*} x Typically the 'x' co-ordinate on a plane.
@@ -694,8 +714,74 @@ class Point {
     }
 }
 
+/**
+ * An object with 'grad', 'axisBegin', and 'gradPercentage' properties.
+ * 
+ * <ul>
+ *  <li> 'grad' - GRAD_BY_X or GRAD_BY_Y constants of this script file. </li>
+ *  <li> 'axisBegin' - an integer that determines the beginning 'x' for a 'grad' of value {@link GRAD_BY_X}, or 
+ * 'y' for 'grad' of value {@link GRAD_BY_Y}. </li>
+ *  <li> 'gradPercentage' - a percentage from 0 to 1 that determines how far the gradient will be drawn toward the
+ * vertex, with 0 being the value of 'axisBegin' and 1 being position of the vertex (i.e. when gradPercentage = 1, 
+ * the gradient travels completely from the origin point to the vertex; when gradPercentage = .5, the gradient 
+ * travels halfway from the 'axisBegin' value to the vertex). </li>
+ * </ul>
+ */
+class GradObject {
+
+    grad;
+    axisBegin;
+    gradPercentage;
+
+    /**
+     * 
+     * @param {*} grad an integer value of GRAD_BY_X or GRAD_BY_Y.
+     * @param {*} axisBegin An integer that determines the beginning 'x' value with parameter 'grad' at value 
+     * {@link GRAD_BY_X}, or the 'y' for a 'grad' at value {@link GRAD_BY_Y}.
+     * @param {*} gradPercentage a percentage from 0 to 1 that determines how far the gradient will be drawn toward the
+     * vertex, with 0 being the value of 'axisBegin' and 1 being position of the vertex (i.e. when gradPercentage = 1, 
+     * the gradient travels completely from 'axisBegin' to the vertex; when gradPercentage = .5, the gradient 
+     * travels half-way from 'axisBegin' to the vertex).
+     */
+    constructor(grad, axisBegin, gradPercentage) {
+        switch (arguments.length) {
+            case 3: 
+                if (typeof gradPercentage == 'number') {
+                    if (gradPercentage > 1 || gradPercentage < 0) {
+                        this.gradPercentage = gradPercentage; 
+                    } else {
+                        throw new TypeError ('"gradPercentage" must be between 0 and 1.');
+                    }
+                } else {
+                    throw new TypeError ('"gradPercentage" must be a number.');
+                }
+            case 2: 
+                if (typeof axisBegin == 'number') {
+                    this.axisBegin = axisBegin;
+                } else {
+                    throw new TypeError ('"gradOriginPoint" must be a number.');
+                }
+            case 1: 
+                if (grad === GRAD_BY_X || grad === GRAD_BY_Y) {
+                    this.grad = grad;
+                } else {
+                    throw new TypeError ('"grad" property must be the values of GRAD_BY_X or GRAD_BY_Y constants' +
+                        'of this script.');
+                }
+                
+        }
+        if (arguments.length == 2) {
+            this.gradPercentage = GRAD_TO_VERTEX;
+        } else if (arguments.length == 1) {
+            this.axisBegin = (grad === GRAD_BY_X) ? 0 : canvas.height;
+            this.gradPercentage = GRAD_TO_VERTEX;
+        }
+    }
+}
+
 export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, TEXT_ABOVE_VERTEX, Point,
     clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph,
-    showNotification, showGraphInput, showInputForEdge, view, zoom, DPR, resetCtxTransform
+    showNotification, showGraphInput, showInputForEdge, view, zoom, DPR, resetCtxTransform, getReciprocal,
+    GradObject
 };

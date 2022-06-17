@@ -1,22 +1,16 @@
 class TwoEqualsMap extends Map {
 
-    constructor () {
-        super();
-        this.map = new Map();
-    }
-
     get(key) {
-        return function () {
-            if (this.map.has(key)) {
-                return this.map.get(JSON.stringify(key));
-            }
-        }
+        //console.log("getting " + key);
+        return super.get(key);
     }
     set(key, value) {
-        return this.map.set(JSON.stringify(key), value);
+        //console.log("setting " + JSON.stringify(key));
+        return super.set(JSON.stringify(key), value);
     }
     has(key) {
-        return this.map.has(JSON.stringify(key));
+        console.log("hasing" + key);
+        return super.has(key);
     }
 }
 
@@ -97,6 +91,21 @@ export class Graph {
     }
 
     addVertex(v) {
+        let vHandlers = {
+            get(target, prop, receiver) {
+                const prim = Reflect.get(target, 'value');
+                const v = JSON.parse(prim);
+                console.log(v + ", " + prop);
+                //return typeof value === 'function' ? value.bind(prim) : value;
+                if (prop == 'name' || prop == 'x' || prop == 'y') {
+                    //console.log(JSON.parse(target)[prop]);
+                    return v[prop];
+                } else if (prop == 'value') {
+                    return v;
+                }
+                return Reflect.get(target, prop, receiver);
+            }
+        };
         this.neighbors.set(v, []);
     }
 
@@ -119,6 +128,15 @@ export class Graph {
      * @returns true if the insertion was a success and false if not.
      */
     addEdge(u, v, weight) {
+
+        let edgeHandlers = {
+            get(target, prop, receiver) {
+                if (prop === 'v') {
+                    return JSON.parse(target[prop]);
+                }
+                return Reflect.get(target, prop, receiver);
+            }
+        };
 
         // adding by element
         if (isNaN(u) && isNaN(v)) {
@@ -253,7 +271,7 @@ export class Graph {
     }
 
     getSize() {
-        return this.neighbors.keys().length;
+        return this.neighbors.size;
     }
 
     getWeight(u, v) {
@@ -338,6 +356,11 @@ export class Graph {
 
         for (let edge of this.neighbors.get(u)) {
             if (edge.v == v) {
+                Object.defineProperty(edge, 'weight', {value: weight});
+            }
+        }
+        for (let edge of this.neighbors.get(v)) {
+            if (edge.v == u) {
                 Object.defineProperty(edge, 'weight', {value: weight});
                 return true;
             }
@@ -428,13 +451,12 @@ export class Graph {
         }
 
         let parents = {};
-        parents[JSON.stringify(startingVertex)] = -1;
         var totalWeight = 0;
 
         let T = [];
         T.push(startingVertex);
 
-        while(T.length < getSize()) {
+        while(T.length < this.getSize()) {
             let u = -1, v = -1;
             let currentMinCost = Number.MAX_VALUE;
             for (let i of T) {
@@ -470,11 +492,13 @@ export class Graph {
             }
         }
 
-        cost = new Array(this.getSize()).fill(Number.MAX_VALUE);
+        let cost = {};
+        for (let vertex of this.neighbors.keys()) {
+            cost[JSON.stringify(vertex)] = Number.MAX_VALUE;
+        }
         cost[JSON.stringify(sourceVertex)] = 0;
 
-        let parents = new Array(this.getSize());
-        parents[JSON.stringify(sourceVertex)] = -1;
+        let parents = {};
 
         let T = [];
 
@@ -495,17 +519,15 @@ export class Graph {
                 T.push(u);
             }
 
-            for (let edges of this.neighbors.get(u)) {
-                for (let edge of edges) {
-                    if (!T.includes(edge.v) && cost[JSON.stringify(edge.v)] > cost[JSON.stringify(u)] + edge.weight) {
-                        cost[JSON.stringify(edge.v)] = cost[JSON.stringify(u)] + edge.weight;
-                        parents[JSON.stringify(edge.v)] = JSON.stringify(u);
-                    }
+            for (let edge of this.neighbors.get(u)) {
+                if (!T.includes(edge.v) && cost[JSON.stringify(edge.v)] > cost[JSON.stringify(u)] + edge.weight) {
+                    cost[JSON.stringify(edge.v)] = cost[JSON.stringify(u)] + edge.weight;
+                    parents[JSON.stringify(edge.v)] = JSON.stringify(u);
                 }
             }
         }
 
-        return ShortestPath(sourceVertex, parents, T, cost);
+        return new ShortestPath(sourceVertex, parents, T, cost);
     }
 }
 

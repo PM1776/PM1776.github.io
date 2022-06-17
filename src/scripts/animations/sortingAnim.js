@@ -1,5 +1,6 @@
 import { TEXT_ABOVE_VERTEX, renderNewVertex, renderNewEdge, renderRemoveVertex, 
-    drawVertex, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y, drawVertices } from '../graph/graphView.js';
+    drawVertex, drawEdge, drawGraph, GRAD_BY_X, GRAD_BY_Y, drawVertices, clear, view,
+    GradObject } from '../graph/graphView.js';
 
 var canvas = document.getElementById('graphView');
 var ctx = canvas.getContext('2d');
@@ -40,7 +41,7 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
         var gap = undefined;
         if (targets === true) {
             gap = (axis === 'y') ? 
-                canvas.clientHeight / points.length: 
+                (canvas.clientHeight - TEXT_ABOVE_VERTEX + 12) / points.length: 
                 canvas.clientWidth / points.length;
         }
 
@@ -58,7 +59,7 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
             for (var i = 0; i < points.length; i++) {
                 let target = (Array.isArray(targets)) ? 
                     targets[i] : // target has been specified
-                    Math.floor((i + 1) * gap - gap / 2); // determines target by the evenly spaced method
+                    TEXT_ABOVE_VERTEX - 12 + Math.floor((i + 1) * gap - gap / 2); // determines target by the evenly spaced method
 
                 let color = (colors[i]) ? colors[i] : '0, 0, 0';
 
@@ -175,11 +176,36 @@ function fade(funcFrom, funcInto, overlaySpeed, finishWait = 0) {
 
 function fadeFromSorted (graph, sortedPoints, axis) {
 
+    var GRAD = (axis == 'y') ? GRAD_BY_X : GRAD_BY_Y;
+
     const fadeFrom = () => {
-        drawVertices(sortedPoints, axis, false, 'rgb(' + rangeColor + ', 255)');
+        // Drawing gradient from sorted point to original point: O(n logn)
+        for (let vertex of graph.getVertices()) {
+            // binary search
+            let vAxisVal = Object.getOwnPropertyDescriptor(vertex, axis).value;
+            let low = 0, high = sortedPoints.length, mid = high / 2;
+            while (high >= low) {
+                if (Object.getOwnPropertyDescriptor(sortedPoints[mid], axis).value > vAxisVal) {
+                    high = mid - 1;
+                    mid = 0|(low + (high - low) / 2);
+                } else if (Object.getOwnPropertyDescriptor(sortedPoints[mid], axis).value < vAxisVal) {
+                    low = mid + 1;
+                    mid = 0|(low + (high - low) / 2);
+                } else {
+                    high = low - 1;
+                    let oppAxisVal = Object.getOwnPropertyDescriptor(sortedPoints[mid], (axis == 'y') ? 'x' : 'y').value;
+                    let gradObject = new GradObject(GRAD, oppAxisVal);
+                    drawVertex(vertex, 'rgb(' + rangeColor + ')', gradObject, true);
+                    drawVertex(sortedPoints[mid], 'rgb(' + rangeColor + ')', undefined, true);
+                }
+            }
+        }
+        //drawVertices(sortedPoints, axis, true, 'rgb(' + rangeColor + ', 255)');
+    }, fadeTo = () => {
+        drawGraph(graph, false);
     };
 
-    return fade(fadeFrom, () => drawGraph(graph, false), .008);
+    return fade(fadeFrom, fadeTo, .005); //.008
 }
 
 export { mergeSortRangeAndSwap, alignToEvenSpacing, aligned, linesOnAxis, fadeFromSorted, fade };
