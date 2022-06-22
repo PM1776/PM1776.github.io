@@ -36,6 +36,10 @@ input[id='searchingFor'] {
     width: 10px;
 }
 
+#searchingFor, #start {
+    min-width: 80px;
+}
+
 #graphView {
     box-sizing: border-box;
 }
@@ -118,23 +122,28 @@ canvas {
     background-size: cover;
 }
 
-.touch {
+.tap {
     background: url("../resources/touchIcon.png");
     background-size: cover;
 }
 
-.doubleTouch {
+.doubleTap {
     background: url("../resources/doubleTouchIcon.png");
     background-size: cover;
 }
 
-.dragTouch {
+.dragTap {
     background: url("../resources/dragTouchIcon.png");
     background-size: cover;
 }
 
-.mouseWheel {
+.zoom {
     background: url("../resources/mouseWheelIcon.png");
+    background-size: cover;
+}
+
+.zoomPinch {
+    background: url("../resources/pinchIcon.jpg");
     background-size: cover;
 }
 

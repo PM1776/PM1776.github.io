@@ -2,15 +2,34 @@ class TwoEqualsMap extends Map {
 
     get(key) {
         //console.log("getting " + key);
-        return super.get(key);
+        let get = super.get(key);
+
+        // Searches for a name value if not found
+        if (!get && typeof key === 'string') {
+            for (let [vertex, neighbors] of this) {
+                if (key.toLowerCase() == String(vertex.name).toLowerCase()) {
+                    return neighbors;
+                }
+            }
+        }
+        return get;
     }
     set(key, value) {
-        //console.log("setting " + JSON.stringify(key));
-        return super.set(JSON.stringify(key), value);
+        //console.log(`setting ${JSON.stringify(JSON.stringify(key))}`);
+        return super.set(key, value);
     }
     has(key) {
-        console.log("hasing" + key);
-        return super.has(key);
+        for (let [vertex, neighbors] of this) {
+            if (typeof key === 'string') {
+                if (key.toLowerCase() == String(vertex.name).toLowerCase()) {
+                    return vertex;
+                }
+            } else {
+                if (JSON.stringify(key) == JSON.stringify(vertex)) {
+                    return vertex;
+                }
+            }
+        }
     }
 }
 
@@ -25,7 +44,7 @@ export class Graph {
      */
     constructor(vertices, edges) {
     
-        this.neighbors = new Map();
+        this.neighbors = new TwoEqualsMap();
         // this.neighbors = new Proxy(new Map(), {
         //     get(map, key) {
         //         return function () {
@@ -209,7 +228,7 @@ export class Graph {
                 if (neighborsEdges[i].v == vertex) {
                     found = true;
                 }
-                if (found) {
+                if (found && i != neighborsEdges.length - 1) {
                     neighborsEdges[i].v = neighborsEdges[i + 1].v;
                 }
             }
@@ -267,7 +286,7 @@ export class Graph {
 
     getNeighbors () {
         return this.neighbors;
-        //return new Map(JSON.parse(JSON.stringify([...this.neighbors])));
+        //return new TwoEqualsMap(JSON.parse(JSON.stringify([...this.neighbors])));
     }
 
     getSize() {
@@ -300,32 +319,6 @@ export class Graph {
         return this.getVertices().every((val) => 'x' in val && 'y' in val && 'name' in val);
     }
 
-    /** 
-     * An alternative has() method for the this.neighbors Map, in place due to object keys in a Map requiring 
-     * the exact reference. I believe a Proxy could work over the
-     * get, set, and has methods and inputing them as strigified objects, but I don't seem to understand much
-     * at all about them.
-     * 
-     * @param v the vertex to check if in the graph. Alternatively, can pass in a name and search by that.
-     * @returns the vertex in the graph.
-     */
-    hasVertex(v) {
-
-        for (let [vertex, neighs] of this.neighbors) {
-            if (typeof v === 'string') {
-                if (String(vertex.name).normalize().toLowerCase() === String(v.normalize()).toLowerCase()) {
-                    return vertex;
-                }
-            } else {
-                if (JSON.stringify(v) === JSON.stringify(vertex)) {
-                    return vertex;
-                }
-            }
-        }
-
-        return null;
-    }
-
     hasVertexInRadius (point, radius) {
         for (let [v, neighs] of this.neighbors) {
             let vDistance = Math.sqrt((point.x - v.x) * (point.x - v.x) + (point.y - v.y) * (point.y - v.y));
@@ -338,7 +331,7 @@ export class Graph {
     }
 
     setVertexName(v, name) {
-        if (this.hasVertex(v)) Object.defineProperty(v, 'name', {value: name});
+        if (this.neighbors.has(v)) Object.defineProperty(v, 'name', {value: name});
     }
 
     setWeight(u, v, weight) {
@@ -541,7 +534,7 @@ class SearchTree {
      * in an array.
      * 
      * @param {*} root 
-     * @param {*} parent 
+     * @param {*} parent assumes the array of parent vertices is in JSON stringified form, and parses it
      * @param {*} searchOrder 
      */
     constructor(root, parents, searchOrder) {
@@ -591,6 +584,10 @@ class SearchTree {
         return path;
     }
 
+    getSearchOrder() {
+        return [...this.searchOrder];
+    }
+
     printTree () {
         console.log("Root: " + this.root);
         console.log("Edges: ");
@@ -615,7 +612,7 @@ class MST extends SearchTree {
 }
 
 class ShortestPath extends SearchTree {
-    cost = [];
+    cost;
 
     constructor(root, parents, searchOrder, cost) {
         super(root, parents, searchOrder);
@@ -632,11 +629,7 @@ class ShortestPath extends SearchTree {
             }
         }
 
-        return cost[JSON.stringify(v)];
-    }
-
-    getAllCost() {
-        return [...cost];
+        return this.cost[JSON.stringify(v)];
     }
 }
 

@@ -99,7 +99,7 @@ function moveVertexToTarget(vertex, target, speed, axis, changeColor) {
     
     let color = (changeColor) ? changeColor : "0, 0, 0";
     const GRAD = (axis === 'y') ? GRAD_BY_X : GRAD_BY_Y;
-    drawVertex(vertex, 'rgb(' + color + ', .5)', GRAD, true);
+    drawVertex(vertex, 'rgb(' + color + ', .5)', new GradObject(GRAD, null, null, 'rgb(' + color + ', .5)'), true);
 }
 
 const aligned = () => moved.every((val) => val);
@@ -194,8 +194,8 @@ function fadeFromSorted (graph, sortedPoints, axis) {
                 } else {
                     high = low - 1;
                     let oppAxisVal = Object.getOwnPropertyDescriptor(sortedPoints[mid], (axis == 'y') ? 'x' : 'y').value;
-                    let gradObject = new GradObject(GRAD, oppAxisVal);
-                    drawVertex(vertex, 'rgb(' + rangeColor + ')', gradObject, true);
+                    let gradObject = new GradObject(GRAD, oppAxisVal, undefined, 'rgb(' + rangeColor + ')');
+                    drawVertex(vertex, undefined, gradObject, true);
                     drawVertex(sortedPoints[mid], 'rgb(' + rangeColor + ')', undefined, true);
                 }
             }

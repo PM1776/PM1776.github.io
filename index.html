@@ -21,8 +21,8 @@
                     <div class="navbar-nav">
                       <button class="btn btn-primary active" type="button" id="findPaths" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="true" aria-label="Toggle navigation" disabled> Find Paths </button>
                       <div class="collapse show" id="navbarToggleExternalContent">
-                        <div class="findPathItems p-1 justifyContent alignItems">
-                          <div class="input-group input-group-sm form-inline">
+                        <div class="findPathItems p-1">
+                          <div class="input-group input-group-sm form-inline justify-content-center">
                             <div class="input-group-prepend input-group-sm">
                               <span class="input-group-text">Starting From:</span>
                             </div>
@@ -30,15 +30,14 @@
                             <div class="input-group-prepend input-group-sm">
                               <span class="input-group-text">Searching For:</span>
                             </div>
-                            <input type="text" id="searchingFor" class="form-control" value="Miami" aria-label="Searching For:">
+                            <input type="text" id="searchingFor" class="form-control" min-width="50" value="Miami" aria-label="Searching For:">
                             <div class="dropdown" id="searchTypeDropdown">
-                              <button class="navbar-btn btn btn-primary btn-sm dropdown-toggle text-light me-2" type="button" id="searchType" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Breadth-First Search</button>
+                              <button class="navbar-btn btn btn-primary btn-sm dropdown-toggle text-light me-2" type="button" id="searchType" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Depth-First Search</button>
                               <div class="dropdown-menu" id="searchTypeDropdownMenu" aria-labelledby="searchType">
                                 <a class="dropdown-item" href="#" id="byDepth">Depth-First Search</a>
                                 <a class="dropdown-item" href="#" id="byBreadth">Breadth-First Search</a>
-                                <a class="dropdown-item" href="#" id="byMinimumSpanningTree">Total Shortest Distance</a>
-                                <a class="dropdown-item" href="#" id="byShortestPaths">Shortest Paths</a>
+                                <a class="dropdown-item" href="#" id="byMinimumSpanningTree">Smallest Entirety Distance</a>
+                                <a class="dropdown-item" href="#" id="byShortestPaths">Shortest Path</a>
                               </div>
                             </div>
                             <button class="btn btn-secondary btn-sm me-2" type="button" id="search" disabled> Search </button>

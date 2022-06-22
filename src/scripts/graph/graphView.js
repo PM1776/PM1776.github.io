@@ -1,4 +1,5 @@
 import { Graph } from './graph.js';
+import { mobileCheck, getReciprocal, isColor } from '../utility.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext("2d");
@@ -12,23 +13,20 @@ const GRAD_BY_Y = 2;
 const GRAD_TO_VERTEX = .93;
 const EDGE_FONT = '14px Arial';
 const VERTEX_FONT = '14px Arial';
+const ARROW_SIZE = 10;
+const TEXT_ABOVE_VERTEX = 26;
 /** The size at which a pixel is displayed on the monitor. The #graphView canvas negates this by
  * multiplying its actual size by the DPR but fitting it into the according smaller size, and scales 
  * all drawing by the DPR.
  * @see {@link scaleToDPR} */
 const DPR = window.devicePixelRatio;
 
-const ARROW_SIZE = 10;
-const TEXT_ABOVE_VERTEX = 26;
-
-// Functions to draw the graph on the canvas.
-
-function mobileCheck() {
-    let check = false;
-    (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hipDPR|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
-    return check;
-};
-
+/**
+ * Checks if the parameter passed in is a {@link Graph} object.
+ * 
+ * @param {*} graph the object to check.
+ * @returns true if a {@link Graph} and false if otherwise.
+ */
 function checkIfGraph (graph) {
     if (graph instanceof Graph) {
         return true;
@@ -41,10 +39,26 @@ function checkIfGraph (graph) {
     }
 }
 
+/**
+ * Clears the #graphView canvas, with regards to the zoom scale.
+ */
 function clear() {
-    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    let pos = view.getPosition();
+    // let start = canvasCoorToGraphCoor(new Point(0, 0));
+    // let end = canvasCoorToGraphCoor(new Point(canvas.clientWidth, canvas.clientHeight));
+    let start = new Point(getReciprocal((pos.x !== 0) ? pos.x : 1) / DPR, getReciprocal((pos.y !== 0) ? pos.y : 1) / DPR);
+    let end = new Point(canvas.clientWidth + 4, canvas.clientHeight + 4);
+    ctx.clearRect(start.x, start.y, end.x, end.y);
 }
 
+/**
+ * Resizes the #graphView canvas to x and y parameters in an animation, beginning at a specified speed and slows
+ * down until resized.
+ * 
+ * @param {*} targetX the 'x' co-ordinate to resize to.
+ * @param {*} targetY the 'y' co-ordinate to resize to.
+ * @returns true if successful and false if otherwise.
+ */
 function resizeAnim(targetX, targetY) {
     let canvasDoubleW = 0.0, canvasDoubleH = 0.0; // stores canvas dimensions in doubles to be more precise
 
@@ -68,6 +82,7 @@ function resizeAnim(targetX, targetY) {
             } else {
                 resolve();
                 scaleToDPR();
+                return true;
             }
         }
         requestAnimationFrame(resize);
@@ -127,15 +142,15 @@ function scaleToDPR (width, height, canv) {
 }
 
 /**
- * Draws a vertex (point) on the canvas.
+ * Draws a vertex ({@link Point} object) on the canvas.
  * 
  * 
  * @param {*} v the point object, with properties 'x', 'y', and optional 'name', if using the 'withName' parameter.
  * @param {*} color the color to draw the vertex, defaulted to 'black'.
  * @param {*} gradient an optional gradient fade to the vertex on the specified 'GRAD_BY_X' or 'GRAD_BY_Y' constants 
  *      of this class, or a {@link GradObject} to specify the gradient begin point
- * @param {*} withName 
- * @param {*} translate 
+ * @param {*} withName an option to display the name of the {@link Point} object.
+ * @param {*} translate an option to translate the vertex in relation to the {@link view} zoom scale.
  */
 function drawVertex(v, color = 'black', gradObject, withName, translate) {
 
@@ -161,15 +176,15 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
     }
 
     if (gradObject.grad === GRAD_BY_X) {
-        var lingrad2 = ctx.createLinearGradient(gradObject.axisBegin, v.y, v.x * gradObject.gradPercentage, v.y);
-        lingrad2.addColorStop(0, color);
+        var lingrad2 = ctx.createLinearGradient(gradObject.axisBegin ?? 0, v.y, v.x * gradObject.gradPercentage, v.y);
+        lingrad2.addColorStop(0, gradObject.color);
         lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.strokeStyle = lingrad2;
 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(gradObject.axisBegin, v.y);
+        ctx.moveTo(gradObject.axisBegin ?? 0, v.y);
         ctx.lineTo(v.x * gradObject.gradPercentage, v.y);
         ctx.stroke();
 
@@ -179,15 +194,15 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
         const GRAD_TO_VERTEX_INVERTED = (gradObject.axisBegin < v.y) ? // checks if grad ends above or below vertex
             gradObject.gradPercentage : 2 - gradObject.gradPercentage; 
 
-        var lingrad2 = ctx.createLinearGradient(v.x, gradObject.axisBegin, v.x, v.y * GRAD_TO_VERTEX_INVERTED);
-        lingrad2.addColorStop(0, color);
+        var lingrad2 = ctx.createLinearGradient(v.x, gradObject.axisBegin ?? 0, v.x, v.y * GRAD_TO_VERTEX_INVERTED);
+        lingrad2.addColorStop(0, gradObject.color);
         lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.strokeStyle = lingrad2;
 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(v.x, gradObject.axisBegin);
+        ctx.moveTo(v.x, gradObject.axisBegin ?? 0);
         ctx.lineTo(v.x, v.y * GRAD_TO_VERTEX_INVERTED);
         ctx.stroke();
     }
@@ -195,6 +210,13 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
     ctx.restore();
 }
 
+/**
+ * Draws the {@link Point} object's 'name' property above the vertex.
+ * @param {*} v the {@link Point} object to display the name of.
+ * @param {*} font the font to write the name in, in the CSS font format style (i.e. '14px Arial').
+ * @param {*} color the color to draw the name in.
+ * @param {*} withBackground the option to draw a background behind the name.
+ */
 function drawVertexName(v, font = VERTEX_FONT, color = 'blue', withBackground) {
 
     if (withBackground) {
@@ -211,30 +233,30 @@ function drawVertexName(v, font = VERTEX_FONT, color = 'blue', withBackground) {
 }
 
 /**
- * Adds a new vertex and draws the graph again.
+ * Adds a new vertex to the {@link Graph} object, with consideration to the {@link view} zoom scale and draws 
+ * the graph again.
  * 
  * @param {*} v the vertex to add.
- * @param {*} graph the graph to add it to.
+ * @param {*} graph the {@link Graph} object to add the vertex to.
  */
  function renderNewVertex(v, graph) {
     checkIfGraph(graph);
-    let pos = view.getPosition();
-    let scale = view.getScale();
-    let defTranslation = view.getDefaultTranslate();
-    Object.defineProperties(v, {
-        x: {value: (v.x / DPR) * (getReciprocal(scale) * DPR) - (pos.x * getReciprocal(scale) / DPR) }, 
-        y: {value: (v.y / DPR) * (getReciprocal(scale) * DPR) - (pos.y * getReciprocal(scale) / DPR) }
-    });
     graph.addVertex(v);
     drawGraph(graph, true);
 }
 
+/**
+ * Animates the removing of a vertex from a {@link Graph} object by drawing it red for 1 second, and then removing
+ * from the graph.
+ * @param {*} v the vertex to remove.
+ * @param {*} graph the {@link Graph} object to remove the vertex from.
+ */
 function renderRemoveVertex(v, graph) {
     checkIfGraph(graph);
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    clear();
 
-    v = graph.hasVertex(v);
+    v = graph.getNeighbors().has(v);
     let neighbors = graph.getNeighbors().get(v);
 
     graph.removeVertex(v);
@@ -259,18 +281,27 @@ function renderRemoveVertex(v, graph) {
  * @param {*} vertices an array of the vertices to draw.
  * @param {*} gradient an int value of GRAD_BY_X or GRAD_BY_Y will add a gradient on the
  *      specified axis until it nearly reaches the vertex.
- * @param {*} clear a boolean indicating whether to clear #graphView before drawing, with a default of true.
- * @param {*} color the color to draw the 
+ * @param {*} clearr a boolean indicating whether to clear #graphView before drawing, with a default of true.
+ * @param {*} color the color to draw the vertices.
  */
-function drawVertices (vertices, gradient, clear = true, color) {
+function drawVertices (vertices, gradient, clearr = true, color) {
 
-    if (clear) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (clearr) clear();
 
     for (let vertex of vertices) {
         drawVertex(vertex, color, gradient, true);
     }
 }
 
+/**
+ * A function to draw all the names of the vertices in a {@link Graph} object without drawing the vertices.
+ * 
+ * @param {*} vertices the vertices to draw the names of.
+ * @param {*} font the font to draw the names, in the format of CSS font format (i.e. '14px Arial')
+ * @param {*} color the color to draw the names.
+ * @param {*} withBackground the option to draw the names with a background.
+ * @param {*} translate the option to draw the names with relation to {@link view}'s zoom scale.
+ */
 function drawVerticesNames (vertices, font, color, withBackground, translate) {
     for (let v of vertices) {
         ctx.save();
@@ -315,7 +346,7 @@ function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineW
     if (weight) drawEdgeWeight(v1, v2, weight, edgeColor);
 }
 
-function drawEdgeWeight (v1, v2, weight, color = 'black') {
+function drawEdgeWeight (v1, v2, weight, color = 'black', c = ctx) {
 
     let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
     let halfLength = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y)) / 2;
@@ -329,23 +360,22 @@ function drawEdgeWeight (v1, v2, weight, color = 'black') {
         angle += Math.PI;
     }
     
-    ctx.save();
-    translateByScale(center);
-    ctx.translate(center.x, center.y);
-    ctx.rotate(angle);
-    ctx.translate(-center.x, -center.y);
+    c.save();
+    translateByScale(center, c);
+    c.translate(center.x, center.y);
+    c.rotate(angle);
+    c.translate(-center.x, -center.y);
 
-    ctx.fillStyle = 'white';
-    ctx.fillRect(center.x - String(String(weight)).length * 4, center.y - 5,
+    c.fillStyle = 'white';
+    c.fillRect(center.x - String(String(weight)).length * 4, center.y - 5,
                 String(weight).length * 8, 10);
 
-    ctx.fillStyle = color;
-    ctx.font = EDGE_FONT;
-    ctx.textAlign = 'center';
-    ctx.fillText(weight, center.x, center.y + 5);
+    c.fillStyle = color;
+    c.font = EDGE_FONT;
+    c.textAlign = 'center';
+    c.fillText(weight, center.x, center.y + 5);
 
-    ctx.restore();
-    
+    c.restore();
 }
 
 function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color, weight) {
@@ -397,9 +427,8 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
 
         let arrowCanvas = document.createElement("canvas");
         scaleToDPR(parseInt(canvas.style.width), parseInt(canvas.style.height), arrowCanvas);
-        arrowCanvas.style.top = parseInt(window.getComputedStyle(canvas).border) + "px";
-        arrowCanvas.style.left = parseInt(window.getComputedStyle(canvas).border) + "px";
         arrowCanvas.style.position = 'absolute';
+        arrowCanvas.style.border = '2px solid blue';
         
         document.getElementById('canvasContainer').appendChild(arrowCanvas);
 
@@ -418,17 +447,24 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
             actx.beginPath();
         
             // left arrowhead
+            translateByScale(triangleTip, actx);
             actx.moveTo(triangleTip.x, triangleTip.y);
             let arrowLeft = {
                 x: triangleTip.x - ARROW_SIZE * Math.cos(angle - Math.PI / 6),
                 y: triangleTip.y - ARROW_SIZE * Math.sin(angle - Math.PI / 6)
             };
-            
+            translateByScale(arrowLeft, actx);
             actx.lineTo(triangleTip.x - ARROW_SIZE * Math.cos(angle - Math.PI / 6),
                        triangleTip.y - ARROW_SIZE * Math.sin(angle - Math.PI / 6));
 
             // right arrowhead
+            translateByScale(triangleTip, actx);
             actx.moveTo(triangleTip.x, triangleTip.y);
+            let arrowRight = {
+                x: triangleTip.x - ARROW_SIZE * Math.cos(angle + Math.PI / 6),
+                y: triangleTip.y - ARROW_SIZE * Math.sin(angle + Math.PI / 6)
+            };
+            translateByScale(arrowRight, actx);
             actx.lineTo(triangleTip.x - ARROW_SIZE * Math.cos(angle + Math.PI / 6),
                        triangleTip.y - ARROW_SIZE * Math.sin(angle + Math.PI / 6));
             
@@ -436,24 +472,23 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
             actx.lineWidth = 2;
             actx.stroke();
             
-            // Gradiant from the arrow to the end of the edge
-            let coloredLength = totalLength - lengthDownArrow;
-            var lingrad2 = ctx.createLinearGradient(triangleTip.x, triangleTip.y,
-                triangleTip.x - coloredLength * Math.cos(angle), triangleTip.y - coloredLength * Math.sin(angle));
-            lingrad2.addColorStop(0, arrowColor);
-            lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-            //actx.strokeStyle = lingrad2;
             actx.lineWidth = 2;
             actx.beginPath();
+            translateByScale(triangleTip, actx);
             actx.moveTo(triangleTip.x, triangleTip.y);
+            let coloredLength = totalLength - lengthDownArrow;
+            let coloredEnd = {
+                x: triangleTip.x - coloredLength * Math.cos(angle),
+                y: triangleTip.y - coloredLength * Math.sin(angle)
+            };
+            translateByScale(coloredEnd, actx);
             actx.lineTo(triangleTip.x - coloredLength * Math.cos(angle),
                        triangleTip.y - coloredLength * Math.sin(angle));
 
             actx.closePath();
             actx.stroke();
 
-            drawEdgeWeight(v1, v2, weight);
+            drawEdgeWeight(v1, v2, weight, undefined, actx);
             
             if (lengthDownArrow > POINT_RADIUS) {
                 drawVertexName(v1, undefined, undefined, true);
@@ -461,9 +496,7 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
                 requestAnimationFrame(moveArrow);
             } else {
                 if (keepOnCanvas) {
-                    
                     let reciprocal = getReciprocal(DPR);
-
                     ctx.scale(reciprocal, reciprocal);
                     ctx.drawImage(arrowCanvas, 0, 0);
                     ctx.scale(DPR, DPR);
@@ -494,12 +527,10 @@ function renderNewEdge(u, v, graph) {
  * @param {*} edgeDrawing an integer value of 0 (drawing edges with no animation), 1 (edges drawn with 
  * direction), and 2 (a sliding arrow animation for showing the direction).
  */
-async function drawGraph (graph, clear = true, edgeDrawing) {
+async function drawGraph (graph, clearr = true, edgeDrawing) {
     checkIfGraph(graph);
 
-    if (clear) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    if (clearr) clear();
     
     // Draws edges and vertices
     graph.getNeighbors().forEach((neighbors, vertex) => {
@@ -521,11 +552,17 @@ async function drawGraph (graph, clear = true, edgeDrawing) {
     drawVerticesNames(graph.getVertices(), undefined, undefined, true, true);
 }
 
+/**
+ * Handles the #graphView context scaling to the {@link DPR}, as well as translating it porportionally to the point 
+ * that is being zoomed in on. This works with {@link translateByScale}, which is called before any point is
+ * drawn on the canvas to essentially scale the graph to {@link view}.getZoomScale() but keep the same size, to create
+ * a zooming effect.
+ */
 const view = (() => {
     const matrix = [1, 0, 0, 1, 0, 0]; // current view transform
     var m = matrix; // alias for clear code
-    var scale = 1; // current scale
     var ctx; // reference to the 2D context
+    let zoomScale = 1; // the scale that the canvas is zoomed
     const pos = { x: 0, y: 0 }; // current position of origin
     var dirty = true;
     var defTranslate = { x: 0, y: 0 };
@@ -535,7 +572,7 @@ const view = (() => {
             if (dirty) { this.update() }
             ctx.setTransform(m[0], m[1], m[2], m[3], m[4], m[5])
         },
-        getScale() { return scale },
+        getZoomScale() { return zoomScale },
         getPosition() { return pos },
         getDefaultTranslate() {
             return defTranslate;
@@ -543,22 +580,22 @@ const view = (() => {
         isDirty() { return dirty },
         update() {
             dirty = false;
-            m[3] = m[0] = DPR; // scale, which is always the devicePixelRatio (1.5 on my laptop)
+            m[3] = m[0] = DPR; // canvas scale, which is always the devicePixelRatio (1.5 on my laptop)
             m[2] = m[1] = 0;
             m[4] = defTranslate.x + pos.x; // translate x (automatically moves any pixel drawn by this amount)
             m[5] = defTranslate.y + pos.y; // translate y
         },
         scaleAt(at, amount) { // at in screen coords
             if (dirty) { this.update() }
-            scale *= amount;
+            zoomScale *= amount;
             //console.log("pos.x = " + at.x + " - (" + at.x + " - " + pos.x + ") * " + amount);
             pos.x = at.x - (at.x - pos.x) * amount;
             pos.y = at.y - (at.y - pos.y) * amount;
-            //console.log("scale: " + scale);
+            //console.log("scale: " + zoomScale);
             //console.log("pos.x: " + pos.x);
             dirty = true;
         },
-        setDefaultTranslate(x, y) { // not used for now
+        setDefaultTranslate(x, y) { // not used
             defTranslate = { x: x, y: y };
         },
     };
@@ -574,8 +611,8 @@ view.setContext(ctx);
  * 
  * @param {*} v the point to translate by scale.
  */
-function translateByScale(v) {
-    ctx.translate(v.x * view.getScale() - v.x, v.y * view.getScale() - v.y);
+function translateByScale(v, c = ctx) {
+    c.translate(v.x * view.getZoomScale() - v.x, v.y * view.getZoomScale() - v.y);
 }
 
 function zoom (drawFunc) {
@@ -583,8 +620,28 @@ function zoom (drawFunc) {
         resetCtxTransform(); // default transform for clear
         clear();
         view.apply(); // set the 2D context transform to the view
-        drawFunc();
     }
+    drawFunc();
+}
+
+function canvasCoorToGraphCoor (point) {
+    let pos = view.getPosition();
+    let scale = view.getZoomScale();
+    let defTranslation = view.getDefaultTranslate();
+    return new Point(
+        (point.x / DPR) * (getReciprocal(scale) * DPR) - (pos.x * getReciprocal(scale) / DPR), // x
+        (point.y / DPR) * (getReciprocal(scale) * DPR) - (pos.y * getReciprocal(scale) / DPR)  // y
+    );
+}
+
+function graphCoorToCanvasCoor (point) {
+    let pos = view.getPosition();
+    let scale = view.getZoomScale();
+    let defTranslation = view.getDefaultTranslate();
+    return new Point(
+        ((DPR * point.x) / ((getReciprocal(scale) * DPR) * DPR) + (pos.x * getReciprocal(scale) / DPR) * DPR / ((getReciprocal(scale) * DPR) * DPR)) * DPR, // x
+        ((DPR * point.y) / ((getReciprocal(scale) * DPR) * DPR) + (pos.y * getReciprocal(scale) / DPR) * DPR / ((getReciprocal(scale) * DPR) * DPR)) * DPR  // y
+    );
 }
 
 function resetCtxTransform () {
@@ -595,8 +652,13 @@ function showNotification (message, time) {
     document.getElementsByClassName('alert')[0].innerHTML = message;
     document.getElementsByClassName('alert')[0].style.display = 'block';
     setTimeout(() => {
-        document.getElementsByClassName('alert')[0].style.display = 'none';
+        if (!isShowingNewNotification(message)) document.getElementsByClassName('alert')[0].style.display = 'none';
     }, time);
+}
+
+function isShowingNewNotification(message) {
+    if (document.getElementsByClassName('alert')[0].innerText.replace(/\n/g, '') !== message.replace(/<[^>]*>/g, '')) return true;
+    return false;
 }
 
 /**
@@ -608,7 +670,7 @@ function showNotification (message, time) {
  * effect as when simply blurred away.
  * 
  * @param {*} point A point to place to text input, and centering on the 'x' co-ordinate.
- * @param {*} defaultValue The default value of the text input.
+ * @param {*} defaultValue The value put as the text input's placeholder.
  * @param {*} blur A function that runs when the input's onblur event handler runs.
  * @param {*} enter A function that runs with a parameter of the text input value when the 'enter' key is pressed.
  *      Can return true for successful entry, and false for otherwise.
@@ -616,7 +678,7 @@ function showNotification (message, time) {
  async function showGraphInput (point, defaultValue, blur, enter) {
     return new Promise(resolve => {
         let popup = document.createElement("input");
-        popup.value = defaultValue;
+        popup.placeholder = defaultValue;
         popup.type = 'text';
         popup.size = 8;
         popup.classList.add('poppin');
@@ -627,7 +689,6 @@ function showNotification (message, time) {
         let x = point.x - (popup.clientWidth / 2) + CANVAS_MARGIN + CANVAS_BORDER;
         let leftX = point.x + (popup.clientWidth / 2) + CANVAS_MARGIN + (CANVAS_BORDER * 2);
         let withinBordersX = ((x > 0) ? (leftX < document.body.clientWidth) ? x : document.body.clientWidth - popup.clientWidth : 0);
-        console.log(document.body.clientWidth - popup.clientWidth);
         popup.style.left = withinBordersX + 'px';
         popup.style.top = point.y + 'px';
 
@@ -637,7 +698,8 @@ function showNotification (message, time) {
         };
         popup.onkeydown = (e) => {
             if (e.key === 'Enter') {
-                if (enter(popup.value) == undefined || enter(popup.value) == true) {
+                let popVal = (popup.value) ? popup.value : popup.placeholder;
+                if (enter(popVal) == undefined || enter(popVal) == true) {
                     popup.blur();
                     resolve();
                 }
@@ -653,10 +715,14 @@ async function showInputForEdge (v1, v2, graph) {
     const headerHeight = document.getElementById('header').getBoundingClientRect().height;
     const legendHeight = document.getElementById('legend').getBoundingClientRect().height;
 
-    let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
-    let halfLength = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y)) / 2;
-    let x = v2.x - halfLength * Math.cos(angle);
-    let y = v2.y - halfLength * Math.sin(angle) + headerHeight + legendHeight;
+    let c1 = graphCoorToCanvasCoor(v1);
+    let c2 = graphCoorToCanvasCoor(v2);
+
+    let angle = Math.atan2(c2.y - c1.y, c2.x - c1.x);
+    let distance = Math.sqrt((c2.x - c1.x) * (c2.x - c1.x) + (c2.y - c1.y) * (c2.y - c1.y));
+    let halfLength = distance / 2;
+    let x = c2.x - halfLength * Math.cos(angle);
+    let y = c2.y - halfLength * Math.sin(angle) + headerHeight + legendHeight;
     let blur = () => {
         drawGraph(graph);
     };
@@ -668,21 +734,7 @@ async function showInputForEdge (v1, v2, graph) {
                 "on the connection)")
         }
     };
-    await showGraphInput(new Point(x, y), 0, blur, enter);
-}
-
-/**
- * A utility function that gets the reciprocal of a number.
- * 
- * @param {*} number the number to get the reciprocal of.
- * @returns the reciprocal number.
- */
-function getReciprocal(number) {
-    // Get the fraction of the numbe (multiplies by 10 until number is a whole number for decimals)
-    let bottom;
-    for (bottom = 1; !Number.isInteger(number); bottom *= 10, number *= 10);
-
-    return bottom / number;
+    await showGraphInput(new Point(x, y), Math.floor(distance * 4.5), blur, enter);
 }
 
 /**
@@ -715,7 +767,7 @@ class Point {
 }
 
 /**
- * An object with 'grad', 'axisBegin', and 'gradPercentage' properties.
+ * An object with 'grad', 'axisBegin', 'gradPercentage', and 'gradColor' properties.
  * 
  * <ul>
  *  <li> 'grad' - GRAD_BY_X or GRAD_BY_Y constants of this script file. </li>
@@ -729,22 +781,39 @@ class Point {
  */
 class GradObject {
 
+    /** An Integer value of {@link GRAD_BY_X} or {@link GRAD_BY_Y} that determines which axis the gradient will 
+     * travel on toward the vertex. */
     grad;
-    axisBegin;
-    gradPercentage;
+    /** A Number value that determines where the gradient begins on the 'grad' axis (i.e. a value of '10' and 
+     * a grad of 'GRAD_BY_X' will begin at an 'x' of '10' and gradient till it reaches the 'gradPercentage' value). */
+    axisBegin = 0;
+    /** A Number, typically between 0 (axisBegin value) and 1 (vertex), that determines how far to gradient till 
+     * stopping (i.e. a value of .5 will stop half-way from the 'axisBegin' value to the vertex). */
+    gradPercentage = GRAD_TO_VERTEX;
+    /** The color to draw the gradient. */
+    color = 'black';
 
     /**
+     * Creates an object that holds values used to create a small line gradient towards a vertex on an 'x' or 'y' 
+     * axis, utilized by {@link drawVertex}.
      * 
-     * @param {*} grad an integer value of GRAD_BY_X or GRAD_BY_Y.
+     * @param {*} grad An integer value of GRAD_BY_X or GRAD_BY_Y.
      * @param {*} axisBegin An integer that determines the beginning 'x' value with parameter 'grad' at value 
-     * {@link GRAD_BY_X}, or the 'y' for a 'grad' at value {@link GRAD_BY_Y}.
-     * @param {*} gradPercentage a percentage from 0 to 1 that determines how far the gradient will be drawn toward the
-     * vertex, with 0 being the value of 'axisBegin' and 1 being position of the vertex (i.e. when gradPercentage = 1, 
-     * the gradient travels completely from 'axisBegin' to the vertex; when gradPercentage = .5, the gradient 
-     * travels half-way from 'axisBegin' to the vertex).
+     * {@link GRAD_BY_X}, or the 'y' for a 'grad' at value {@link GRAD_BY_Y}. Defaults to 0.
+     * @param {*} gradPercentage A Number, typically from 0 to 1, that determines how far the gradient will be 
+     * drawn toward the vertex, with 0 being the value of 'axisBegin' and 1 being the position of the vertex 
+     * (i.e. when gradPercentage = 1, the gradient travels completely from 'axisBegin' to the vertex; when 
+     * gradPercentage = .5, the gradient travels half-way from 'axisBegin' to the vertex). Defaults to {@link 
+     * GRAD_TO_VERTEX}.
+     * @param color the color to draw the gradient.
      */
-    constructor(grad, axisBegin, gradPercentage) {
+    constructor(grad, axisBegin, gradPercentage, color) {
+        // Checks arguments
         switch (arguments.length) {
+            case 4:
+                if (isColor(color)) {
+                    this.color = color;
+                }
             case 3: 
                 if (typeof gradPercentage == 'number') {
                     if (gradPercentage > 1 || gradPercentage < 0) {
@@ -752,14 +821,10 @@ class GradObject {
                     } else {
                         throw new TypeError ('"gradPercentage" must be between 0 and 1.');
                     }
-                } else {
-                    throw new TypeError ('"gradPercentage" must be a number.');
                 }
             case 2: 
                 if (typeof axisBegin == 'number') {
                     this.axisBegin = axisBegin;
-                } else {
-                    throw new TypeError ('"gradOriginPoint" must be a number.');
                 }
             case 1: 
                 if (grad === GRAD_BY_X || grad === GRAD_BY_Y) {
@@ -768,20 +833,14 @@ class GradObject {
                     throw new TypeError ('"grad" property must be the values of GRAD_BY_X or GRAD_BY_Y constants' +
                         'of this script.');
                 }
-                
-        }
-        if (arguments.length == 2) {
-            this.gradPercentage = GRAD_TO_VERTEX;
-        } else if (arguments.length == 1) {
-            this.axisBegin = (grad === GRAD_BY_X) ? 0 : canvas.height;
-            this.gradPercentage = GRAD_TO_VERTEX;
         }
     }
 }
 
-export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, TEXT_ABOVE_VERTEX, Point,
+export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, TEXT_ABOVE_VERTEX, DPR,
     clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph,
-    showNotification, showGraphInput, showInputForEdge, view, zoom, DPR, resetCtxTransform, getReciprocal,
-    GradObject
+    showNotification, showGraphInput, showInputForEdge, zoom, resetCtxTransform, canvasCoorToGraphCoor,
+    graphCoorToCanvasCoor,
+    view, Point, GradObject
 };

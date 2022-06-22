@@ -1,40 +1,46 @@
-import { clear, view, getReciprocal } from '../graph/graphView.js';
+import { clear, view, Point } from '../graph/graphView.js';
+import { getReciprocal } from '../utility.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext('2d');
+let zoomTouchDist = 0;
 
 /**
- * A function that scales the view to 1 instantly with no parameters, or, if provided the scale and position,
- * will scale to those instantly.
- * 
- * @param {*} scale the number to 
- * @param {*} pos 
+ * A function that scales the {@link view} zoom scale to 1 instantly.
  */
-function scale1Instantly (scale = view.getScale(), pos = view.getPosition()) {
+function scale1Instantly () {
 
     clear();
-    let scaleRecip = getReciprocal(scale) 
+    let zoomScale = view.getZoomScale();
+    let pos = view.getPosition()
+    let scaleRecip = getReciprocal(zoomScale);
 
-    let targetX = (scale != view.getScale()) ? pos.x : 1;
-    let targetY = (scale != view.getScale()) ? pos.y : 1;
+    let targetX = (zoomScale != view.getZoomScale()) ? pos.x : 1;
+    let targetY = (zoomScale != view.getZoomScale()) ? pos.y : 1;
 
     let at = {
         x: (-scaleRecip * pos.x + 1) / (targetX - (scaleRecip == 1) ? 2 : scaleRecip), // doesn't work with 
         y: (-scaleRecip * pos.y + 1) / (targetY - (scaleRecip == 1) ? 2 : scaleRecip)  // scaleRecip as 1
     }
 
-    // TODO: work on changing view to any scale and position
-
     view.scaleAt(at, scaleRecip);
     view.apply();
 }
 
+/**
+ * Not working.
+ * 
+ * @param {*} to1 
+ * @param {*} rate 
+ * @param {*} overlaySpeed 
+ * @returns 
+ */
 function scale1Anim (to1 = true, rate = .1, overlaySpeed = .1) {
 
     clear();
 
     let originalScale, scale;
-    originalScale = scale = view.getScale();
+    originalScale = scale = view.getZoomScale();
     rate = (scale > 1) ? 1 + rate : 1 - rate;
     let pos = view.getPosition();
 
@@ -66,4 +72,37 @@ function scale1Anim (to1 = true, rate = .1, overlaySpeed = .1) {
     });
 }
 
-export { scale1Anim, scale1Instantly };
+function zoomScaleHandler (e) {
+    var e = window.event || e;
+    var center, touchDelta;
+    if (e.type === 'touchmove') {
+        var touch1 = new Point(e.touches[0].clientX, e.touches[0].clientY);
+        var touch2 = new Point(e.touches[1].clientX, e.touches[1].clientY);
+        center = getDistanceHalfPoint(touch1, touch2);
+        touchDelta = getDistance(touch1, touch2) - zoomTouchDist;
+        zoomTouchDist = getDistance(touch1, touch2);
+    }
+    var x = (e.type != 'touchmove') ? e.offsetX : center.x;
+    var y = (e.type != 'touchmove') ? e.offsetY : center.y;
+    const delta = e.type === "mousewheel" ? e.wheelDelta : e.type !== "touchmove" ? -e.detail : touchDelta;
+    if (delta > 0) { 
+        view.scaleAt({x, y}, 1.1)
+    } else { 
+        view.scaleAt({x, y}, 1 / 1.1) 
+    }
+}
+
+function getDistance (v1, v2) {
+    return Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y));
+}
+
+function getDistanceHalfPoint (v1, v2) {
+    var halfDist = getDistance(v1, v2) / 2;
+    var angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
+    return {
+        x: v2.x - halfDist * Math.cos(angle),
+        y: v2.y - halfDist * Math.sin(angle)
+    };
+}
+
+export { scale1Anim, scale1Instantly, getDistance, getDistanceHalfPoint, zoomScaleHandler };
