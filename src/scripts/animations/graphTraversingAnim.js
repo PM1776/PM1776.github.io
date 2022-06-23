@@ -5,7 +5,7 @@ const COLOR = 'blue';
 const AWAIT_TIME = 250;
 const ARROW_SPEED = .94;
 const ARROW_SPEED_BY_TIME = .93;
-const MESSAGE_TIME = 8000;
+const MESSAGE_TIME = 10000;
 
 /**
  * Animates through the search results of a Depth-First search from a {@link Graph}.dfs() returned {@link SearchTree}.

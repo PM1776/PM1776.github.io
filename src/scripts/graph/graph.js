@@ -1,33 +1,59 @@
+/**
+ * TwoEqualsMap allows keys that are objects in the Map to be gotten (get()) by their 'name' value if not found 
+ * by their object reference, and allows similar functionality for its has() function.
+ */
 class TwoEqualsMap extends Map {
 
+    /** Searches for a value in the Map by firstly the key's reference value, then simply equaling 'name' 
+     * property. It additionally gets a key's value by a String of the key's 'name' property.
+     * 
+     * @param key the key to retrieve its value, searching by type of the actual key, its 'name' property, or 
+     * a String of the desired key's 'name' property.
+     * @returns the value that was set to match the key.
+     */
     get(key) {
-        //console.log("getting " + key);
         let get = super.get(key);
+        if (get) return get;
 
-        // Searches for a name value if not found
-        if (!get && typeof key === 'string') {
-            for (let [vertex, neighbors] of this) {
-                if (key.toLowerCase() == String(vertex.name).toLowerCase()) {
-                    return neighbors;
-                }
+        /* Searches for the vertex by its name property if not found, as JavaScript Maps set keys that are
+         * objects to thier reference value. */
+        let name = (typeof key === 'string') ? key : (key.hasOwnProperty('name')) ? key.name : null;
+
+        if (!name) {
+            throw new TypeError("The key must be an object with an equal 'name' property or the name " +
+                "as a String.");
+        }
+
+        for (let [vertex, neighbors] of this) {
+            if (name.toLowerCase() == String(vertex.name).toLowerCase()) {
+                return neighbors;
             }
         }
-        return get;
+
+        return [];
     }
-    set(key, value) {
-        //console.log(`setting ${JSON.stringify(JSON.stringify(key))}`);
-        return super.set(key, value);
-    }
+    /** Checks if a key exists in the Map by its reference value, then simply by equaling 'name' property. It 
+     * additionally can check by a String of the key's 'name' property.
+     * 
+     * @param key the key to check if existing in the Map, of type of either an object with equaling reference,
+     * 'name' property, or a String of the desired key's 'name' property.
+     * @returns the key, if found.
+     */
     has(key) {
+
+        let has = super.has(key);
+        if (has) return has;
+
+        let name = (typeof key === 'string') ? key : (key.hasOwnProperty('name')) ? key.name : null;
+
+        if (!name) {
+            throw new TypeError("The key must be an object with an equal 'name' property or the name " +
+                "as a String.");
+        }
+
         for (let [vertex, neighbors] of this) {
-            if (typeof key === 'string') {
-                if (key.toLowerCase() == String(vertex.name).toLowerCase()) {
-                    return vertex;
-                }
-            } else {
-                if (JSON.stringify(key) == JSON.stringify(vertex)) {
-                    return vertex;
-                }
+            if (name.toLowerCase() == String(vertex.name).toLowerCase()) {
+                return vertex;
             }
         }
     }
@@ -45,24 +71,6 @@ export class Graph {
     constructor(vertices, edges) {
     
         this.neighbors = new TwoEqualsMap();
-        // this.neighbors = new Proxy(new Map(), {
-        //     get(map, key) {
-        //         return function () {
-        //             if (map.has(map, key)) {
-        //                 return map.get(JSON.stringify(key));
-        //             }
-        //         }
-        //     },
-        //     set(map, key, value) {
-        //         return function () {
-        //             return map.set(JSON.stringify(key), value);
-        //         }
-        //     },
-        //     has(map, key) {
-        //         return map.has(JSON.stringify(key));
-        //     }
-        // });
-        // this.neighbors.set("key", "val");
 
         // Adds vertices if passed in
         if (vertices != undefined) {
@@ -76,6 +84,7 @@ export class Graph {
     }
 
     /**
+     * Gets a vertex at the specified index.
      * 
      * @param {*} v the (relative) index of a vertex within neighbors.keys(), whose value is determined by
      *      the order elements were inserted and flunctuates on the deletion of previously inserted keys.
@@ -97,6 +106,12 @@ export class Graph {
         return null;
     }
 
+    /**
+     * Gets the index of the specified vertex.
+     * 
+     * @param {*} v the vertex to retrieve the index of.
+     * @returns the index, if found, or -1 if not.
+     */
     indexOf(v) {
         let count = 0;
         for (let key of this.neighbors.keys()) {
@@ -109,6 +124,11 @@ export class Graph {
         return -1;
     }
 
+    /**
+     * Adds a vertex to the graph.
+     * 
+     * @param {*} v the vertex to add.
+     */
     addVertex(v) {
         let vHandlers = {
             get(target, prop, receiver) {
@@ -128,6 +148,11 @@ export class Graph {
         this.neighbors.set(v, []);
     }
 
+    /**
+     * Adds an array of vertice objects to the graph.
+     * 
+     * @param {*} vertices an array of the vertices to add.
+     */
     addVertices (vertices) {
         if (!(Array.isArray(vertices))) {
             throw new TypeError("param 'vertices' must be an Array of vertices with 'x' and 'y' properties.");

@@ -43,9 +43,8 @@ function checkIfGraph (graph) {
  * Clears the #graphView canvas, with regards to the zoom scale.
  */
 function clear() {
+    let scale = view.getZoomScale();
     let pos = view.getPosition();
-    // let start = canvasCoorToGraphCoor(new Point(0, 0));
-    // let end = canvasCoorToGraphCoor(new Point(canvas.clientWidth, canvas.clientHeight));
     let start = new Point(getReciprocal((pos.x !== 0) ? pos.x : 1) / DPR, getReciprocal((pos.y !== 0) ? pos.y : 1) / DPR);
     let end = new Point(canvas.clientWidth + 4, canvas.clientHeight + 4);
     ctx.clearRect(start.x, start.y, end.x, end.y);
@@ -215,12 +214,14 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
  * @param {*} v the {@link Point} object to display the name of.
  * @param {*} font the font to write the name in, in the CSS font format style (i.e. '14px Arial').
  * @param {*} color the color to draw the name in.
- * @param {*} withBackground the option to draw a background behind the name.
+ * @param {*} backgroundColor displays a background behind the vertex name that is a transparent lightgray if
+ * true, or can contain a string of background color wanted.
  */
-function drawVertexName(v, font = VERTEX_FONT, color = 'blue', withBackground) {
+function drawVertexName(v, font = VERTEX_FONT, color = 'blue', backgroundColor, ctx = canvas.getContext('2d')) {
 
-    if (withBackground) {
-        ctx.fillStyle = '#f6f2f2';
+    if (backgroundColor) {
+        ctx.fillStyle = (typeof backgroundColor != 'boolean' && isColor(backgroundColor)) ? backgroundColor :
+            'rgb(246, 242, 242, .7)';
         ctx.fillRect(v.x - String(v.name).length * 3.6, v.y - TEXT_ABOVE_VERTEX, // x, y
                      String(v.name).length * 7.2, TEXT_ABOVE_VERTEX - 12);       // w, h
     }
@@ -302,11 +303,11 @@ function drawVertices (vertices, gradient, clearr = true, color) {
  * @param {*} withBackground the option to draw the names with a background.
  * @param {*} translate the option to draw the names with relation to {@link view}'s zoom scale.
  */
-function drawVerticesNames (vertices, font, color, withBackground, translate) {
+function drawVerticesNames (vertices, font, color, withBackground, translate, ctx = canvas.getContext('2d')) {
     for (let v of vertices) {
         ctx.save();
         if (translate) translateByScale(v);
-        drawVertexName(v, font, color, withBackground);
+        drawVertexName(v, font, color, withBackground, ctx);
         ctx.restore();
     }
 }
@@ -489,10 +490,10 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
             actx.stroke();
 
             drawEdgeWeight(v1, v2, weight, undefined, actx);
+            drawVertexName(v1, undefined, undefined, true, actx);
+            drawVertexName(v2, undefined, undefined, true, actx);
             
             if (lengthDownArrow > POINT_RADIUS) {
-                drawVertexName(v1, undefined, undefined, true);
-                drawVertexName(v2, undefined, undefined, true);
                 requestAnimationFrame(moveArrow);
             } else {
                 if (keepOnCanvas) {
@@ -501,8 +502,6 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
                     ctx.drawImage(arrowCanvas, 0, 0);
                     ctx.scale(DPR, DPR);
                 }
-                drawVertexName(v1, undefined, undefined, true);
-                drawVertexName(v2, undefined, undefined, true);
                 document.getElementById('canvasContainer').removeChild(arrowCanvas);
                 resolve();
             }
@@ -648,7 +647,7 @@ function resetCtxTransform () {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 
-function showNotification (message, time) {
+function showNotification (message, time = 5000) {
     document.getElementsByClassName('alert')[0].innerHTML = message;
     document.getElementsByClassName('alert')[0].style.display = 'block';
     setTimeout(() => {

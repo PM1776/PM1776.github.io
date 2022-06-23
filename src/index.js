@@ -1,14 +1,14 @@
-import Graph from './graph/graph.js';
+import Graph from './scripts/graph/graph.js';
 import { MOBILE, TEXT_ABOVE_VERTEX, POINT_RADIUS, Point, resizeAnim, resizeInstantly, renderNewVertex, 
     renderNewEdge, renderRemoveVertex, drawVertex, drawEdge, drawGraph, drawVertices, 
     clear, drawDirectionalEdgeAnim, showNotification, showGraphInput, showInputForEdge, view, zoom, DPR, 
-    resetCtxTransform, canvasCoorToGraphCoor, graphCoorToCanvasCoor } from './graph/graphView.js';
-import { mergeSort } from './algorithms/mergeSort.js';
-import { findClosestPairIn } from './algorithms/closestPairOfPoints.js';
-import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim } from './animations/graphTraversingAnim.js';
-import { draggingEdgeAnim } from './animations/addingEdgeAnim.js';
-import { scale1Instantly } from './animations/zoomAnim.js';
-import { zoomScaleHandler } from './animations/zoomAnim.js';
+    resetCtxTransform, canvasCoorToGraphCoor, graphCoorToCanvasCoor } from './scripts/graph/graphView.js';
+import { mergeSort } from './scripts/algorithms/mergeSort.js';
+import { findClosestPairIn } from './scripts/algorithms/closestPairOfPoints.js';
+import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim } from './scripts/animations/graphTraversingAnim.js';
+import { draggingEdgeAnim } from './scripts/animations/addingEdgeAnim.js';
+import { scale1Instantly } from './scripts/animations/zoomAnim.js';
+import { zoomScaleHandler } from './scripts/animations/zoomAnim.js';
 
 var graph;
 var canvas;
@@ -284,6 +284,7 @@ function touchStart (e) {
             
             if (!checkDoubleTap(e)) // runs double tap code if applicable
                 setTimeout(() => { // begins edge addition if tap held longer than a sec
+                    showNotification("Held boi!!", 5000);
                     if (!oneTouch) return;
                     
                     let point = getEventPoint(e, true), v;

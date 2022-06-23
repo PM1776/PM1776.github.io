@@ -173,6 +173,7 @@ canvas {
 
 #alert {
     display: none;
+    background-color: rgba(211, 211, 211, .6);
     position: absolute;
     bottom: 0%;
     left: 16px;
