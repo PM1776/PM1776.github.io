@@ -5,14 +5,19 @@ import { TEXT_ABOVE_VERTEX, renderNewVertex, renderNewEdge, renderRemoveVertex,
 var canvas = document.getElementById('graphView');
 var ctx = canvas.getContext('2d');
 
-var rangeColor = '144, 238, 144';
+var rangeColor = 'rgb(144, 238, 144)';
 
 var moved;
 
 function mergeSortRangeAndSwap (points, axis, rangeBegin, rangeEnd) {
 
     let colors = new Array(points.length).fill(rangeColor, rangeBegin, rangeEnd + 1);
-    let speed = (axis == 'y') ? 4 : 2.5;
+    let gap = (axis == 'y') ? 
+            (canvas.clientHeight - TEXT_ABOVE_VERTEX + 12) / points.length : 
+            canvas.clientWidth / points.length;
+    
+    let maxSpeed = 2.6;
+    let speed = (gap / 25 < maxSpeed) ? gap / 25 : maxSpeed;
 
     return new alignToEvenSpacing(points, axis, true, speed, .1, 500, colors, false);
 }
@@ -24,15 +29,15 @@ function mergeSortRangeAndSwap (points, axis, rangeBegin, rangeEnd) {
  * @param {*} points an array of points to animate with 'x' and 'y' properties.
  * @param {*} axis the axis string of 'x' or 'y' on which to traverse to the target co-ordinate.
  * @param {*} targets either an array of target co-ordinates of associating indices to the point array,
- *      or a boolean value of true indicating to space them evenly along the axis.
+ * or a boolean value of true indicating to space them evenly along the axis.
  * @param {*} speed the speed at which to move the points
- * @param {*} overlaySpeed a value between 0 and 1 that specifies how quickly to draw the background overlay color.
- *      This essentially determines the trailing effect speed of items drawn.
+ * @param {*} overlayAlpha a value between 0 and 1 that specifies how much transparency to draw the overlaying
+ * background color. This essentially determines the fading speed of items drawn.
  * @param {*} colors an array of rgb values in the format of "-, -, -", assiciating with point indices,
- *      to color the points.
+ * to color the points.
  * @param {*} clear boolean value to clear #graphView prior to animation, with default to true.
  */
-function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overlaySpeed = 0.1, finishDelay = 1000,
+function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overlayAlpha = 0.1, finishDelay = 1000,
         colors = [], clear = true) {
 
     return new Promise(resolve => {
@@ -40,8 +45,8 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
 
         var gap = undefined;
         if (targets === true) {
-            gap = (axis === 'y') ? 
-                (canvas.clientHeight - TEXT_ABOVE_VERTEX + 12) / points.length: 
+            gap = (axis == 'y') ? 
+                (canvas.clientHeight - TEXT_ABOVE_VERTEX + 12) / points.length : 
                 canvas.clientWidth / points.length;
         }
 
@@ -51,9 +56,11 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
 
         const align = async () => {
 
-            // slowly overlays the background layer on drawn objects to allow a trailing effect
-            ctx.fillStyle = "rgb(255, 255, 255, " + overlaySpeed + ")";
+            // slowly overlays the background layer to allow a trailing effect for items drawn
+            ctx.globalAlpha = overlayAlpha;
+            ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
 
             // moves the points closer to their target
             for (var i = 0; i < points.length; i++) {
@@ -61,9 +68,7 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
                     targets[i] : // target has been specified
                     TEXT_ABOVE_VERTEX - 12 + Math.floor((i + 1) * gap - gap / 2); // determines target by the evenly spaced method
 
-                let color = (colors[i]) ? colors[i] : '0, 0, 0';
-
-                moveVertexToTarget(points[i], target, speed, axis, color);
+                moveVertexToTarget(points[i], target, speed, axis, colors[i]);
 
                 if (Object.getOwnPropertyDescriptor(points[i], axis).value === target) {
                     moved[i] = true;
@@ -86,7 +91,7 @@ function alignToEvenSpacing(points, axis = 'y', targets = true, speed = 2, overl
     });
 }
 
-function moveVertexToTarget(vertex, target, speed, axis, changeColor) {
+function moveVertexToTarget(vertex, target, speed, axis, changeColor = 'black') {
     // moves the vertex closer to the evenly split y target point
     var axisVal = Object.getOwnPropertyDescriptor(vertex, axis).value;
 
@@ -97,9 +102,10 @@ function moveVertexToTarget(vertex, target, speed, axis, changeColor) {
     }
     Object.defineProperty(vertex, axis, {value: axisVal});
     
-    let color = (changeColor) ? changeColor : "0, 0, 0";
     const GRAD = (axis === 'y') ? GRAD_BY_X : GRAD_BY_Y;
-    drawVertex(vertex, 'rgb(' + color + ', .5)', new GradObject(GRAD, null, null, 'rgb(' + color + ', .5)'), true);
+    ctx.globalAlpha = .5;
+    drawVertex(vertex, changeColor, new GradObject(GRAD, null, null, changeColor, true), true);
+    ctx.globalAlpha = 1;
 }
 
 const aligned = () => moved.every((val) => val);
@@ -119,9 +125,10 @@ function linesOnAxis (points, axis) {
  * 
  * @param {*} funcFrom the function to fade from.
  * @param {*} funcInto the function to fade into.
- * @param {*} overlaySpeed the speed to fade into or out of.
+ * @param {*} overlayAlpha a value between 0 and 1 that specifies how much transparency to draw the overlaying
+ * background color. This essentially determines the fading speed of items drawn.
  */
-function fade(funcFrom, funcInto, overlaySpeed, finishWait = 0) {
+function fade(funcFrom, funcInto, overlayAlpha, finishWait = 0) {
 
     return new Promise(resolve => {
 
@@ -131,7 +138,7 @@ function fade(funcFrom, funcInto, overlaySpeed, finishWait = 0) {
 
         const transition = async () => {
 
-            fromOverlay -= overlaySpeed;
+            fromOverlay -= overlayAlpha;
             intoOverlay = 1 - fromOverlay;
 
             // paints the function with the lowest opacity first to be overlayed more
@@ -157,7 +164,7 @@ function fade(funcFrom, funcInto, overlaySpeed, finishWait = 0) {
             ctx.fillStyle = "rgb(255, 255, 255, " + Math.min(fromOverlay, intoOverlay) + ")";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            //Math.abs(overlaySpeed) >= Number.EPSILON;
+            //Math.abs(overlayAlpha) >= Number.EPSILON;
             if (parseFloat(fromOverlay - 1) > -1) {
                 requestAnimationFrame(transition);
             } else {
@@ -183,7 +190,7 @@ function fadeFromSorted (graph, sortedPoints, axis) {
         for (let vertex of graph.getVertices()) {
             // binary search
             let vAxisVal = Object.getOwnPropertyDescriptor(vertex, axis).value;
-            let low = 0, high = sortedPoints.length, mid = high / 2;
+            let low = 0, high = sortedPoints.length, mid = 0|(high / 2);
             while (high >= low) {
                 if (Object.getOwnPropertyDescriptor(sortedPoints[mid], axis).value > vAxisVal) {
                     high = mid - 1;
@@ -194,9 +201,9 @@ function fadeFromSorted (graph, sortedPoints, axis) {
                 } else {
                     high = low - 1;
                     let oppAxisVal = Object.getOwnPropertyDescriptor(sortedPoints[mid], (axis == 'y') ? 'x' : 'y').value;
-                    let gradObject = new GradObject(GRAD, oppAxisVal, undefined, 'rgb(' + rangeColor + ')');
+                    let gradObject = new GradObject(GRAD, oppAxisVal, .96, rangeColor);
                     drawVertex(vertex, undefined, gradObject, true);
-                    drawVertex(sortedPoints[mid], 'rgb(' + rangeColor + ')', undefined, true);
+                    drawVertex(sortedPoints[mid], rangeColor, undefined, true);
                 }
             }
         }

@@ -1,5 +1,5 @@
 import { clear, view, Point } from '../graph/graphView.js';
-import { getReciprocal } from '../utility.js';
+import { getReciprocal } from '../general/utility.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext('2d');

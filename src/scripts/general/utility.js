@@ -30,7 +30,24 @@
  * @returns true if so, and false otherwise.
  */
 export const isColor = (strColor) => {
+    if (typeof strColor != 'string') return false;
     const s = new Option().style;
     s.color = strColor;
     return s.color !== '';
+}
+
+/**
+ * Determines the point precisely between the two vertices or points.
+ * 
+ * @param {Point} v1 the first point.
+ * @param {Point} v2 the second point. 
+ * @returns {Point} an Point object with the co-ordinates of the point between the two vertices.
+ */
+export function getCenterPoint(v1, v2) {
+    let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
+    let halfLength = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y)) / 2;
+    return {
+        x: v2.x - halfLength * Math.cos(angle),
+        y: v2.y - halfLength * Math.sin(angle)
+    };
 }

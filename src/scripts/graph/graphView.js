@@ -1,5 +1,8 @@
 import { Graph } from './graph.js';
-import { mobileCheck, getReciprocal, isColor } from '../utility.js';
+import { Point } from './point.js';
+import { mobileCheck, getReciprocal, isColor, getCenterPoint } from '../general/utility.js';
+import { checkIfGraph, checkIfPoints, checkIfArrayOfPoints, checkIfXYProp, checkIfColors, checkIfFont, 
+    checkIfNumbers, checkIfString, checkIfFuncs } from '../general/errorHandling.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext("2d");
@@ -8,36 +11,29 @@ const MOBILE = mobileCheck();
 
 const POINT_RADIUS = (MOBILE) ? 10 : 6;
 const VIEW_CHANGES = 1000;
+
+const DRAW_EDGE = 0;
+const DRAW_EDGE_ARROWS = 1;
+const DRAW_EDGE_ARROWS_ANIM = 0;
+
 const GRAD_BY_X = 1;
 const GRAD_BY_Y = 2;
 const GRAD_TO_VERTEX = .93;
+
 const EDGE_FONT = '14px Arial';
 const VERTEX_FONT = '14px Arial';
-const ARROW_SIZE = 10;
+const AXIS_FONT = VERTEX_FONT;
+
+const VERTEX_BACKGROUND_COLOR = 'rgb(246, 242, 242, .7)';
+const VERTEX_FONT_COLOR = 'blue';
 const TEXT_ABOVE_VERTEX = 26;
+
+const ARROW_SIZE = 10;
 /** The size at which a pixel is displayed on the monitor. The #graphView canvas negates this by
  * multiplying its actual size by the DPR but fitting it into the according smaller size, and scales 
  * all drawing by the DPR.
  * @see {@link scaleToDPR} */
 const DPR = window.devicePixelRatio;
-
-/**
- * Checks if the parameter passed in is a {@link Graph} object.
- * 
- * @param {*} graph the object to check.
- * @returns true if a {@link Graph} and false if otherwise.
- */
-function checkIfGraph (graph) {
-    if (graph instanceof Graph) {
-        return true;
-    } else if (graph === undefined) {
-        graph = new Graph();
-        console.log("graph in GraphView was undefined");
-        return false;
-    } else {
-        throw new TypeError("Cannot display anything other then a Graph object");
-    }
-}
 
 /**
  * Clears the #graphView canvas, with regards to the zoom scale.
@@ -54,8 +50,8 @@ function clear() {
  * Resizes the #graphView canvas to x and y parameters in an animation, beginning at a specified speed and slows
  * down until resized.
  * 
- * @param {*} targetX the 'x' co-ordinate to resize to.
- * @param {*} targetY the 'y' co-ordinate to resize to.
+ * @param {Number} targetX the 'x' co-ordinate to resize to.
+ * @param {Number} targetY the 'y' co-ordinate to resize to.
  * @returns true if successful and false if otherwise.
  */
 function resizeAnim(targetX, targetY) {
@@ -92,8 +88,8 @@ function resizeAnim(targetX, targetY) {
  * Resizes #graphView to the specified width and height instantly, additionally scaling it with the 
  * @see {@link scaleToDPR} method.
  * 
- * @param {*} width the width to resize to.
- * @param {*} height the height to resize to.
+ * @param {Number} width the width to resize to.
+ * @param {Number} height the height to resize to.
  */
 function resizeInstantly (width, height) {
     scaleToDPR(width, height);
@@ -104,9 +100,9 @@ function resizeInstantly (width, height) {
  * designated display width and height through styling to draw per pixel on the device despite the 
  * monitor's set pixel ratio.
  * 
- * @param {*} width the width to 'place' the canvas in. If not specified, defaults to #graphView width.
- * @param {*} height the height to 'place' the canvas in. If not specified, defaults to #graphView height.
- * @param {*} canv the canvas to scale. If not specified, defaults to #graphView.
+ * @param {Number} width the width to 'place' the canvas in. If not specified, defaults to #graphView width.
+ * @param {Number} height the height to 'place' the canvas in. If not specified, defaults to #graphView height.
+ * @param {HTMLCanvasElement} canv the canvas to scale. If not specified, defaults to #graphView.
  */
 function scaleToDPR (width, height, canv) {
     // check params
@@ -143,15 +139,19 @@ function scaleToDPR (width, height, canv) {
 /**
  * Draws a vertex ({@link Point} object) on the canvas.
  * 
- * 
- * @param {*} v the point object, with properties 'x', 'y', and optional 'name', if using the 'withName' parameter.
- * @param {*} color the color to draw the vertex, defaulted to 'black'.
- * @param {*} gradient an optional gradient fade to the vertex on the specified 'GRAD_BY_X' or 'GRAD_BY_Y' constants 
- *      of this class, or a {@link GradObject} to specify the gradient begin point
- * @param {*} withName an option to display the name of the {@link Point} object.
- * @param {*} translate an option to translate the vertex in relation to the {@link view} zoom scale.
+ * @param {Point} v the point object, with properties 'x', 'y', and optional 'name', if using the 'withName' parameter.
+ * @param {String} color the color to draw the vertex, defaulted to 'black'.
+ * @param {*} gradient an optional gradient to the vertex on a specified axis, taking values 'GRAD_BY_X' (x-axis)
+ * or 'GRAD_BY_Y' (y-axis) constants of this script for the according gradients, or a {@link GradObject} to 
+ * further customize the gradient.
+ * @param {boolean} withName an option to display the name of the {@link Point} object.
+ * @param {boolean} translate an option to translate the vertex in relation to the {@link view} zoom scale.
  */
 function drawVertex(v, color = 'black', gradObject, withName, translate) {
+
+    checkIfXYProp({ v });
+    checkIfColors({ color });
+    // All other parameters are checked below
 
     ctx.save();
     if (translate) translateByScale(v);
@@ -162,6 +162,7 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
     ctx.fill();
 
     if (withName) {
+        checkIfPoints({ v });
         drawVertexName(v);
     }
 
@@ -172,10 +173,19 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
     if (!(gradObject instanceof GradObject)) {
         ctx.restore();
         return;
-    }
 
-    if (gradObject.grad === GRAD_BY_X) {
-        var lingrad2 = ctx.createLinearGradient(gradObject.axisBegin ?? 0, v.y, v.x * gradObject.gradPercentage, v.y);
+    } else {
+        let xAxis = gradObject.axis === GRAD_BY_X;
+        let x1, x2, y1, y2;
+        // Inverts the gradPercentage if beginning after the vertex axis value to end on the appropriate side
+        const PERCENTAGE = ((xAxis && gradObject.axisBegin > v.x) || (!xAxis && gradObject.axisBegin > v.y)) ?
+            2 - gradObject.gradPercentage : gradObject.gradPercentage; 
+
+        var lingrad2 = ctx.createLinearGradient(
+            x1 = (xAxis) ? gradObject.axisBegin : v.x, // assigns the 'axisBegin' property to the co-ordinate 
+            y1 = (!xAxis) ? gradObject.axisBegin : v.y, // of the according axis of gradObject
+            x2 = (xAxis) ? v.x * PERCENTAGE : v.x, // determines the percentage to travel toward the vertex on
+            y2 = (!xAxis) ? v.y * PERCENTAGE : v.y); // the according axis
         lingrad2.addColorStop(0, gradObject.color);
         lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
@@ -183,27 +193,15 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(gradObject.axisBegin ?? 0, v.y);
-        ctx.lineTo(v.x * gradObject.gradPercentage, v.y);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.stroke();
 
-    } else if (gradObject.grad === GRAD_BY_Y) {
-
-        // y grad goes to just above the vertex from the full canvas height
-        const GRAD_TO_VERTEX_INVERTED = (gradObject.axisBegin < v.y) ? // checks if grad ends above or below vertex
-            gradObject.gradPercentage : 2 - gradObject.gradPercentage; 
-
-        var lingrad2 = ctx.createLinearGradient(v.x, gradObject.axisBegin ?? 0, v.x, v.y * GRAD_TO_VERTEX_INVERTED);
-        lingrad2.addColorStop(0, gradObject.color);
-        lingrad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-        ctx.strokeStyle = lingrad2;
-
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(v.x, gradObject.axisBegin ?? 0);
-        ctx.lineTo(v.x, v.y * GRAD_TO_VERTEX_INVERTED);
-        ctx.stroke();
+        if (gradObject.withAxisVal) {
+            let center = getCenterPoint(new Point(x1, y1), new Point(x2, y2));
+            let text = String((xAxis) ? v.x : v.y);
+            drawTextWithBackground(text, center, 'rgb(246, 242, 242)', 'black');
+        }
     }
 
     ctx.restore();
@@ -211,17 +209,23 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
 
 /**
  * Draws the {@link Point} object's 'name' property above the vertex.
- * @param {*} v the {@link Point} object to display the name of.
- * @param {*} font the font to write the name in, in the CSS font format style (i.e. '14px Arial').
- * @param {*} color the color to draw the name in.
- * @param {*} backgroundColor displays a background behind the vertex name that is a transparent lightgray if
+ * 
+ * @param {Point} v the {@link Point} object to display the name of.
+ * @param {string} font the font to write the name in, in the CSS font format style (i.e. '14px Arial').
+ * @param {string} color the color to draw the name in.
+ * @param {string} backgroundColor draws a background behind the vertex name that is a transparent lightgray if
  * true, or can contain a string of background color wanted.
+ * @returns true if successful and false if otherwise.
  */
-function drawVertexName(v, font = VERTEX_FONT, color = 'blue', backgroundColor, ctx = canvas.getContext('2d')) {
+function drawVertexName(v, font = VERTEX_FONT, color = VERTEX_FONT_COLOR, backgroundColor, ctx = canvas.getContext('2d')) {
+
+    checkIfPoints({ v });
+    checkIfFont({ font });
+    checkIfColors({ color });
 
     if (backgroundColor) {
         ctx.fillStyle = (typeof backgroundColor != 'boolean' && isColor(backgroundColor)) ? backgroundColor :
-            'rgb(246, 242, 242, .7)';
+            VERTEX_BACKGROUND_COLOR;
         ctx.fillRect(v.x - String(v.name).length * 3.6, v.y - TEXT_ABOVE_VERTEX, // x, y
                      String(v.name).length * 7.2, TEXT_ABOVE_VERTEX - 12);       // w, h
     }
@@ -237,11 +241,14 @@ function drawVertexName(v, font = VERTEX_FONT, color = 'blue', backgroundColor, 
  * Adds a new vertex to the {@link Graph} object, with consideration to the {@link view} zoom scale and draws 
  * the graph again.
  * 
- * @param {*} v the vertex to add.
- * @param {*} graph the {@link Graph} object to add the vertex to.
+ * @param {Point} v the vertex to add.
+ * @param {Graph} graph the {@link Graph} object to add the vertex to.
  */
  function renderNewVertex(v, graph) {
+
     checkIfGraph(graph);
+    checkIfPoints({ v });
+
     graph.addVertex(v);
     drawGraph(graph, true);
 }
@@ -249,11 +256,13 @@ function drawVertexName(v, font = VERTEX_FONT, color = 'blue', backgroundColor, 
 /**
  * Animates the removing of a vertex from a {@link Graph} object by drawing it red for 1 second, and then removing
  * from the graph.
- * @param {*} v the vertex to remove.
- * @param {*} graph the {@link Graph} object to remove the vertex from.
+ * @param {Point} v the vertex to remove.
+ * @param {Graph} graph the {@link Graph} object to remove the vertex from.
  */
 function renderRemoveVertex(v, graph) {
+
     checkIfGraph(graph);
+    checkIfPoints({ v });
 
     clear();
 
@@ -263,7 +272,6 @@ function renderRemoveVertex(v, graph) {
     graph.removeVertex(v);
 
     for (let v2 of neighbors) {
-        // draws them in red
         drawEdge(v, v2, 'red', null);
         drawVertex(v2);
     }
@@ -279,13 +287,15 @@ function renderRemoveVertex(v, graph) {
 /**
  * Draws an array of vertices with an optional gradient leading up to it on the X or Y axis.
  * 
- * @param {*} vertices an array of the vertices to draw.
- * @param {*} gradient an int value of GRAD_BY_X or GRAD_BY_Y will add a gradient on the
+ * @param {*} vertices the array of the vertices to draw.
+ * @param {Number} gradient an Integer value of {@link GRAD_BY_X} or {@link GRAD_BY_Y} will add a gradient on the
  *      specified axis until it nearly reaches the vertex.
- * @param {*} clearr a boolean indicating whether to clear #graphView before drawing, with a default of true.
- * @param {*} color the color to draw the vertices.
+ * @param {boolean} clearr a boolean indicating whether to clear #graphView before drawing, with a default of true.
+ * @param {string} color the color to draw the vertices.
  */
 function drawVertices (vertices, gradient, clearr = true, color) {
+
+    checkIfArrayOfPoints(vertices);
 
     if (clearr) clear();
 
@@ -297,13 +307,16 @@ function drawVertices (vertices, gradient, clearr = true, color) {
 /**
  * A function to draw all the names of the vertices in a {@link Graph} object without drawing the vertices.
  * 
- * @param {*} vertices the vertices to draw the names of.
- * @param {*} font the font to draw the names, in the format of CSS font format (i.e. '14px Arial')
- * @param {*} color the color to draw the names.
- * @param {*} withBackground the option to draw the names with a background.
- * @param {*} translate the option to draw the names with relation to {@link view}'s zoom scale.
+ * @param {*} vertices an array of vertices to draw the names of.
+ * @param {string} font the font to draw the names, in the format of CSS font format (i.e. '14px Arial')
+ * @param {string} color the color to draw the names.
+ * @param {boolean} withBackground the option to draw a background behind the names.
+ * @param {boolean} translate the option to draw the names with relation to {@link view}'s zoom scale.
  */
 function drawVerticesNames (vertices, font, color, withBackground, translate, ctx = canvas.getContext('2d')) {
+
+    checkIfArrayOfPoints(vertices);
+
     for (let v of vertices) {
         ctx.save();
         if (translate) translateByScale(v);
@@ -313,18 +326,22 @@ function drawVerticesNames (vertices, font, color, withBackground, translate, ct
 }
 
 /**
- * Draws an edge from one vertex to another in an optional specified color. Can additionally specify
- * a vertex color to redraw the edge vertices.
+ * Draws an edge, or a line connecting two points, from one vertex to another in an optional color. 
+ * Can additionally specify a vertex color to redraw the edge vertices.
  * 
- * @param {*} v1 the first vertex of the edge.
- * @param {*} v2 the second vertex of the edge.
- * @param {*} edgeColor the color to draw the edge, defaulted to black.
- * @param {*} verticesColor the color to draw the vertices of the incident edge. It is by default
+ * @param {Point} v1 the first vertex of the edge.
+ * @param {Point} v2 the second vertex of the edge.
+ * @param {string} edgeColor the color to draw the edge, defaulted to black.
+ * @param {string} verticesColor the color to draw the vertices of the incident edge. It is by default
  *      set to <b>color</b>, with a value of 'null' to not render them.
  */
 function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineWidth = 2, weight, translate) {
 
-    ctx.lineWidth = lineWidth;
+    checkIfXYProp({ v1, v2 });
+    checkIfColors({ edgeColor }); // verticesColor can be null
+    checkIfNumbers({ lineWidth }); // weight can be null
+
+    ctx.lineWidth = Math.floor(lineWidth);
     ctx.strokeStyle = edgeColor;
     ctx.beginPath();
     ctx.save();
@@ -347,39 +364,59 @@ function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineW
     if (weight) drawEdgeWeight(v1, v2, weight, edgeColor);
 }
 
-function drawEdgeWeight (v1, v2, weight, color = 'black', c = ctx) {
+/**
+ * Draws a string in the center of two points with a white background behind it.
+ * 
+ * @param {*} v1 a first object with 'x' and 'y' properties.
+ * @param {*} v2 a second object with 'x' and 'y' properties.
+ * @param {string} weight the text to draw between the two point objects, relating to their 'x' and 'y' properties.
+ * @param {string} color the color to draw the text.
+ * @param {*} ctx the context of the canvas element to draw the string on.
+ */
+function drawEdgeWeight (v1, v2, weight, color = 'black', ctx = canvas.getContext('2d')) {
 
+    checkIfPoints({ v1, v2 });
+    checkIfNumbers({ weight });
+    checkIfColors({ color });
+
+    let center = getCenterPoint(v1, v2);
     let angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
-    let halfLength = Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y)) / 2;
-    let center = {
-        x: v2.x - halfLength * Math.cos(angle),
-        y: v2.y - halfLength * Math.sin(angle)
-    };
 
     // flips angle 180 for readablility if downside
     if (angle < -(Math.PI / 2) || (angle > (Math.PI / 2))) {
         angle += Math.PI;
     }
     
-    c.save();
-    translateByScale(center, c);
-    c.translate(center.x, center.y);
-    c.rotate(angle);
-    c.translate(-center.x, -center.y);
+    ctx.save();
+    translateByScale(center, ctx);
+    ctx.translate(center.x, center.y);
+    ctx.rotate(angle);
+    ctx.translate(-center.x, -center.y);
 
-    c.fillStyle = 'white';
-    c.fillRect(center.x - String(String(weight)).length * 4, center.y - 5,
-                String(weight).length * 8, 10);
+    drawTextWithBackground(String(weight), center, 'white');
 
-    c.fillStyle = color;
-    c.font = EDGE_FONT;
-    c.textAlign = 'center';
-    c.fillText(weight, center.x, center.y + 5);
+    ctx.fillStyle = color;
+    ctx.font = EDGE_FONT;
+    ctx.textAlign = 'center';
+    ctx.fillText(weight, center.x, center.y + 5);
 
-    c.restore();
+    ctx.restore();
 }
 
+/**
+ * Draws an edge, or a line connecting two {@link Point} objects, with an arrow pointing to the second point, 
+ * the optional text in the center of the edge.
+ * 
+ * @param {Point} v1 a first {@link Point} object.
+ * @param {Point} v2 a second {@link Point} object.
+ * @param {string} color the color to draw the edge.
+ * @param {string} verticesColor the color to draw the {@link Point} objects using the {@link drawVertex} method.
+ * @param {string} weight optional text to draw in the center of the edge.
+ */
 function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color, weight) {
+
+    checkIfPoints({ v1, v2 });
+    checkIfColors({ color, backgroundColor });
 
     drawEdge(v1, v2, color, verticesColor, undefined, weight);
 
@@ -407,14 +444,18 @@ function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color, we
  * redraws after the arrow moves. This results in very blurry backgrounds at the end 
  * of the edge, as the arrow slows down the closer it gets to its target.
  * 
- * @param {*} v1 the vertex to begin sliding from.
- * @param {*} v2 the vertex to slide to.
- * @param {*} edgecolor the color of the edge. 
- * @param {*} verticesColor the color of the incident vertices.
- * @param {*} arrowColor the color of the arrow.
+ * @param {Point} v1 the vertex to begin sliding from.
+ * @param {Point} v2 the vertex to slide to.
+ * @param {string} edgecolor the color of the edge. 
+ * @param {string} verticesColor the color of the incident vertices.
+ * @param {string} arrowColor the color of the arrow.
  */
 function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercentage = .9,
     edgeColor = 'black', verticesColor = edgeColor, arrowColor = 'blue', weight) {
+
+    checkIfNumbers({ decreasingPercentage });
+    checkIfColors({ arrowColor });
+    // checks all other params in drawEdge()
 
     drawEdge(v1, v2, edgeColor, verticesColor, undefined, weight);
 
@@ -511,19 +552,52 @@ function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercent
     });
 }
 
+/**
+ * A quick method to add and render an edge, or connection, to a {@link Graph} object.
+ * 
+ * @param {Point} u the first vertex of the connecting edge to add.
+ * @param {Point} v the second vertex that connects to the edge.
+ * @param {Graph} graph the {@link Graph} object to add the edge to.
+ */
 function renderNewEdge(u, v, graph) {
     checkIfGraph(graph);
+    checkIfPoints({ u, v });
     graph.addEdge(u, v);
     drawGraph(graph, true);
+}
+
+/**
+ * Draws a background for text with font '14px Arial' at a specific centering point.
+ * 
+ * @param {string} text the text to estimate the size of the background, assumed to be of font '14px Arial'.
+ * @param {*} point the center point to draw the text.
+ * @param {string} color the color to draw the background.
+ * @param {string} color the color to draw the text.
+ */
+function drawTextWithBackground (text, point, bgColor, textColor = 'black') {
+
+    checkIfString({ text });
+    checkIfXYProp({ point });
+    checkIfColors({ bgColor, textColor });
+
+    // draws background
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(point.x - text.length * 4, point.y - 5, text.length * 8, 10);
+
+    // draws text
+    ctx.fillStyle = textColor;
+    ctx.font = EDGE_FONT;
+    ctx.textAlign = 'center';
+    ctx.fillText(text, point.x, point.y + 5);
 }
 
 /**
  * Draws a graph to the #graphView. Can additionally provide parameters to 
  * exclude certain vertices and edges.
  * 
- * @param {*} graph the graph to draw.
- * @param {*} clear a boolean value of whether to clear the graph beforehand, defaulted to true.
- * @param {*} edgeDrawing an integer value of 0 (drawing edges with no animation), 1 (edges drawn with 
+ * @param {Graph} graph the graph to draw.
+ * @param {boolean} clear a boolean value of whether to clear the graph beforehand, defaulted to true.
+ * @param {Number} edgeDrawing an integer value of 0 (drawing edges with no animation), 1 (edges drawn with 
  * direction), and 2 (a sliding arrow animation for showing the direction).
  */
 async function drawGraph (graph, clearr = true, edgeDrawing) {
@@ -614,16 +688,33 @@ function translateByScale(v, c = ctx) {
     c.translate(v.x * view.getZoomScale() - v.x, v.y * view.getZoomScale() - v.y);
 }
 
+/**
+ * Updates the zoom scale before invoking the function, typically a function that draws on #graphView canvas.
+ * 
+ * @param {function} drawFunc the function to call after updating the zoome scale.
+ */
 function zoom (drawFunc) {
-    if (view.isDirty()) { // has the view changed, then draw all
-        resetCtxTransform(); // default transform for clear
+    checkIfFuncs({ drawFunc });
+
+    if (view.isDirty()) {
+        resetCtxTransform();
         clear();
-        view.apply(); // set the 2D context transform to the view
+        view.apply();
     }
     drawFunc();
 }
 
+/**
+ * Converts an object with 'x' and 'y' of a point within the #graphView canvas (such as an event point) into a 
+ * {@link Point} object with 'x' and 'y' properties of where that would be in the graph with regard to the
+ * {@link view}'s zoom scale.
+ * 
+ * @param {*} point an object with 'x' and 'y' properties.
+ * @returns a {@link Point} object with co-ordinates of where that would be in the graph.
+ */
 function canvasCoorToGraphCoor (point) {
+    checkIfXYProp({ point });
+
     let pos = view.getPosition();
     let scale = view.getZoomScale();
     let defTranslation = view.getDefaultTranslate();
@@ -633,7 +724,16 @@ function canvasCoorToGraphCoor (point) {
     );
 }
 
+/**
+ * Converts an object with 'x' and 'y' of a point in the graph into a {@link Point} object with 'x' and 'y' 
+ * properties of where that would be on the #graphView canvas with regard to {@link view}'s zoom scale.
+ * 
+ * @param {*} point an object with 'x' and 'y' properties.
+ * @returns a {@link Point} object with co-ordinates of where that would be in the graph.
+ */
 function graphCoorToCanvasCoor (point) {
+    checkIfXYProp({ point });
+
     let pos = view.getPosition();
     let scale = view.getZoomScale();
     let defTranslation = view.getDefaultTranslate();
@@ -643,11 +743,23 @@ function graphCoorToCanvasCoor (point) {
     );
 }
 
+/**
+ * Resets #graphView canvas's context to it's defaulted transform.
+ */
 function resetCtxTransform () {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
 
+/**
+ * Displays a message in a transparent bar at the bottom of #graphView.
+ * 
+ * @param {string} message the message to display.
+ * @param {number} time the time to display the message.
+ */
 function showNotification (message, time = 5000) {
+    checkIfString({ message });
+    checkIfNumbers({ time });
+
     document.getElementsByClassName('alert')[0].innerHTML = message;
     document.getElementsByClassName('alert')[0].style.display = 'block';
     setTimeout(() => {
@@ -655,7 +767,15 @@ function showNotification (message, time = 5000) {
     }, time);
 }
 
+/**
+ * Checks if the notification bar is displaying a new message, excluding any HTML.
+ * 
+ * @param {*} message the message to check if displaying, excluding HTML.
+ * @returns true if showing a new message, and false if otherwise.
+ */
 function isShowingNewNotification(message) {
+    checkIfString({ message });
+
     if (document.getElementsByClassName('alert')[0].innerText.replace(/\n/g, '') !== message.replace(/<[^>]*>/g, '')) return true;
     return false;
 }
@@ -669,12 +789,17 @@ function isShowingNewNotification(message) {
  * effect as when simply blurred away.
  * 
  * @param {*} point A point to place to text input, and centering on the 'x' co-ordinate.
- * @param {*} defaultValue The value put as the text input's placeholder.
- * @param {*} blur A function that runs when the input's onblur event handler runs.
- * @param {*} enter A function that runs with a parameter of the text input value when the 'enter' key is pressed.
+ * @param {string} defaultValue The value put as the text input's placeholder.
+ * @param {function} blur A function that runs when the input's onblur event handler runs.
+ * @param {function} enter A function that runs with a parameter of the text input value when the 'enter' key is pressed.
  *      Can return true for successful entry, and false for otherwise.
  */
  async function showGraphInput (point, defaultValue, blur, enter) {
+
+    checkIfPoints({ point });
+    checkIfString({ defaultValue });
+    checkIfFuncs()
+
     return new Promise(resolve => {
         let popup = document.createElement("input");
         popup.placeholder = defaultValue;
@@ -709,6 +834,14 @@ function isShowingNewNotification(message) {
     });
 }
 
+/**
+ * Displays a text input at the center of two vertices with a connecting edge in a {@link Graph} object, and 
+ * sets the weight of the edge upon the 'enter' key, or cancels the input upon focusing on another element.
+ * 
+ * @param {*} v1 the first vertex connecting to the edge in a {@link Graph} object.
+ * @param {*} v2 the second vertex of the edge in the {@link Graph} object.
+ * @param {*} graph the {@link Graph} object to set the edge weight within.
+ */
 async function showInputForEdge (v1, v2, graph) {
 
     const headerHeight = document.getElementById('header').getBoundingClientRect().height;
@@ -737,106 +870,81 @@ async function showInputForEdge (v1, v2, graph) {
 }
 
 /**
- * An object that holds 'x', 'y', and 'name' properties.
- */
-class Point {
-
-    x = 0;
-    y = 0;
-    name = null;
-
-    /**
-     * Can take up to three arguments: two arguments to set the 'x' and 'y' properties, and three
-     * to set the 'x,' 'y,' and 'name' properties.
-     * 
-     * @param {*} x Typically the 'x' co-ordinate on a plane.
-     * @param {*} y Typically the 'y' co-ordinate on a plane.
-     * @param {*} name A name for the point on the plane.
-     */
-    constructor (x, y, name) {
-        if (arguments.length == 2) {
-            this.x = x;
-            this.y = y;
-        } else if (arguments.length == 3) {
-            this.x = x;
-            this.y = y;
-            this.name = name;
-        }
-    }
-}
-
-/**
- * An object with 'grad', 'axisBegin', 'gradPercentage', and 'gradColor' properties.
- * 
- * <ul>
- *  <li> 'grad' - GRAD_BY_X or GRAD_BY_Y constants of this script file. </li>
- *  <li> 'axisBegin' - an integer that determines the beginning 'x' for a 'grad' of value {@link GRAD_BY_X}, or 
- * 'y' for 'grad' of value {@link GRAD_BY_Y}. </li>
- *  <li> 'gradPercentage' - a percentage from 0 to 1 that determines how far the gradient will be drawn toward the
- * vertex, with 0 being the value of 'axisBegin' and 1 being position of the vertex (i.e. when gradPercentage = 1, 
- * the gradient travels completely from the origin point to the vertex; when gradPercentage = .5, the gradient 
- * travels halfway from the 'axisBegin' value to the vertex). </li>
- * </ul>
+ * An object with values to customize the axis, axis beginning point, axis stopping point, and color, as well
+ * as the option to draw the axis value at the center of the gradient.
  */
 class GradObject {
 
     /** An Integer value of {@link GRAD_BY_X} or {@link GRAD_BY_Y} that determines which axis the gradient will 
-     * travel on toward the vertex. */
-    grad;
-    /** A Number value that determines where the gradient begins on the 'grad' axis (i.e. a value of '10' and 
-     * a grad of 'GRAD_BY_X' will begin at an 'x' of '10' and gradient till it reaches the 'gradPercentage' value). */
+     * travel on towards the vertex. */
+    axis = GRAD_BY_X;
+    /** An Integer value that determines where the gradient will begin on the axis (i.e. a value of '10' with 
+     * an axis of 'GRAD_BY_X' will begin at an x of '10' and gradient till it reaches the 'gradPercentage' value). */
     axisBegin = 0;
-    /** A Number, typically between 0 (axisBegin value) and 1 (vertex), that determines how far to gradient till 
+    /** A Number between 0 (axisBegin value) and 1 (vertex), that determines how far to gradient till 
      * stopping (i.e. a value of .5 will stop half-way from the 'axisBegin' value to the vertex). */
     gradPercentage = GRAD_TO_VERTEX;
     /** The color to draw the gradient. */
     color = 'black';
+    /** If true, draws the vertice's 'axis' value (i.e.) */
+    withAxisVal = false;
 
     /**
-     * Creates an object that holds values used to create a small line gradient towards a vertex on an 'x' or 'y' 
-     * axis, utilized by {@link drawVertex}.
+     * Creates an object that holds values for creating a linear gradient towards a vertex using the 
+     * {@link drawVertex} method.
      * 
-     * @param {*} grad An integer value of GRAD_BY_X or GRAD_BY_Y.
-     * @param {*} axisBegin An integer that determines the beginning 'x' value with parameter 'grad' at value 
-     * {@link GRAD_BY_X}, or the 'y' for a 'grad' at value {@link GRAD_BY_Y}. Defaults to 0.
-     * @param {*} gradPercentage A Number, typically from 0 to 1, that determines how far the gradient will be 
+     * @param {Number} axis A value of {@link GRAD_BY_X} or {@link GRAD_BY_Y} that determines the axis of the 
+     * linear gradient. Defaults to {@link GRAD_BY_X}.
+     * @param {Number} axisBegin An Integer value that determines where the gradient will begin on the axis (i.e. 
+     * a value of '10' with an axis of {@link GRAD_BY_X} will begin at an x of '10' and gradient till it reaches 
+     * the 'gradPercentage' value). Defaults to 0 on the 'x' axis, and canvas height on the 'y' axis.
+     * @param {Number} gradPercentage A Number between from 0 to 1, that determines how far the gradient will be 
      * drawn toward the vertex, with 0 being the value of 'axisBegin' and 1 being the position of the vertex 
      * (i.e. when gradPercentage = 1, the gradient travels completely from 'axisBegin' to the vertex; when 
      * gradPercentage = .5, the gradient travels half-way from 'axisBegin' to the vertex). Defaults to {@link 
      * GRAD_TO_VERTEX}.
-     * @param color the color to draw the gradient.
+     * @param {string} color the color to draw the gradient. Defaults to 'black'.
+     * @param {boolean} withAxisVal If true, draws the vertice's axis value at the middle of the gradient. Defaults
+     * to false.
      */
-    constructor(grad, axisBegin, gradPercentage, color) {
-        // Checks arguments
+    constructor(axis, axisBegin, gradPercentage, color, withAxisVal) {
         switch (arguments.length) {
+            case 5:
+                if (typeof withAxisVal == 'boolean') {
+                    this.withAxisVal = withAxisVal;
+                }
             case 4:
                 if (isColor(color)) {
                     this.color = color;
                 }
             case 3: 
                 if (typeof gradPercentage == 'number') {
-                    if (gradPercentage > 1 || gradPercentage < 0) {
+                    if (gradPercentage <= 1 || gradPercentage > 0) {
                         this.gradPercentage = gradPercentage; 
                     } else {
-                        throw new TypeError ('"gradPercentage" must be between 0 and 1.');
+                        throw new RangeError ('"gradPercentage" must be between 0 and 1.');
                     }
                 }
             case 2: 
                 if (typeof axisBegin == 'number') {
-                    this.axisBegin = axisBegin;
+                    this.axisBegin = Math.floor(axisBegin);
                 }
             case 1: 
-                if (grad === GRAD_BY_X || grad === GRAD_BY_Y) {
-                    this.grad = grad;
+                if (axis === GRAD_BY_X || axis === GRAD_BY_Y) {
+                    this.axis = axis;
                 } else {
-                    throw new TypeError ('"grad" property must be the values of GRAD_BY_X or GRAD_BY_Y constants' +
-                        'of this script.');
+                    throw new RangeError ('"axis" property must be a value of "GRAD_BY_X" or "GRAD_BY_Y" constants' +
+                        ' of this script.');
                 }
         }
+
+        // defaults the axisBegin value to the canvas height if on 'y' axis.
+        if (!axisBegin && axis == GRAD_BY_Y) this.axisBegin = canvas.clientHeight;
     }
 }
 
 export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, TEXT_ABOVE_VERTEX, DPR,
+    DRAW_EDGE, DRAW_EDGE_ARROWS, DRAW_EDGE_ARROWS_ANIM,
     clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph,
     showNotification, showGraphInput, showInputForEdge, zoom, resetCtxTransform, canvasCoorToGraphCoor,

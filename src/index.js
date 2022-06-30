@@ -165,7 +165,7 @@ async function addRemove(e, touchPoint) {
         (e.type == 'touchstart')) { // double tapped
 
         if (vertex) renderRemoveVertex(vertex, graph);
-        if (MOBILE) window.navigator.vibrate(VIBRATION_TIME);
+        if (MOBILE && window.navigator.vibrate) window.navigator.vibrate(VIBRATION_TIME);
         return true;
 
     } else if ((e.type == 'mousedown' && e.button == 0) || // left click
@@ -284,13 +284,12 @@ function touchStart (e) {
             
             if (!checkDoubleTap(e)) // runs double tap code if applicable
                 setTimeout(() => { // begins edge addition if tap held longer than a sec
-                    showNotification("Held boi!!", 5000);
                     if (!oneTouch) return;
                     
                     let point = getEventPoint(e, true), v;
 
                     if (v = graph.hasVertexInRadius(point, POINT_RADIUS * 2)) {
-                        if (MOBILE) window.navigator.vibrate(VIBRATION_TIME);
+                        if (MOBILE && window.navigator.vibrate) window.navigator.vibrate(VIBRATION_TIME);
                         
                         edgeStartpt = v;
                         drawVertex(edgeStartpt, 'blue');
