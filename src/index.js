@@ -113,7 +113,6 @@ window.addEventListener("load", async (e) => {
     }
 
     graph = new Graph(vertices, edges);
-    graph.print();
     drawGraph(graph);
     enableButtons();
 });
@@ -124,8 +123,6 @@ window.addEventListener("load", async (e) => {
  * @param {*} e the event that triggered the resizing.
  */
 async function resize(e) {
-
-    console.log(e.type);
 
     // constantly refreshes header heights, as sometimes header stacks
     headerHeight = header.getBoundingClientRect().height;
@@ -188,9 +185,9 @@ async function addRemove(e, touchPoint) {
                 }, enter = (inputValue) => {
                     graph.setVertexName(newPoint, inputValue);
                     pointCount++;
-                };
+                }, inputPoint = new Point(canvasPoint.x, headerHeight + legendHeight + canvasPoint.y - TEXT_ABOVE_VERTEX);
 
-                await showGraphInput(new Point(canvasPoint.x, headerHeight + legendHeight + canvasPoint.y - TEXT_ABOVE_VERTEX), pointCount, blur, enter);
+                await showGraphInput(inputPoint, String(pointCount), blur, enter);
                 return true;
             } else {
                 showNotification("<strong>A point must not overlap on another.</strong> Space is nice.",
@@ -255,9 +252,9 @@ async function dropEdge (e, touchPoint) {
             }, enter = (inputValue) => {
                 graph.setVertexName(point, inputValue);
                 pointCount++;
-            }
-            await showGraphInput(new Point(canvasPoint.x, headerHeight + legendHeight + canvasPoint.y - TEXT_ABOVE_VERTEX), 
-                pointCount, blur, enter);
+            }, inputPoint = new Point(canvasPoint.x, headerHeight + legendHeight + canvasPoint.y - TEXT_ABOVE_VERTEX);
+
+            await showGraphInput(inputPoint, String(pointCount), blur, enter);
             await showInputForEdge(vertexStarted, point, graph);
 
             drawGraph(graph);

@@ -866,7 +866,7 @@ async function showInputForEdge (v1, v2, graph) {
                 "on the connection)")
         }
     };
-    await showGraphInput(new Point(x, y), Math.floor(distance * 4.5), blur, enter);
+    await showGraphInput(new Point(x, y), String(Math.floor(distance * 4.5)), blur, enter);
 }
 
 /**
