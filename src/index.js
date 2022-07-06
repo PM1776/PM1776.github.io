@@ -590,14 +590,3 @@ document.getElementsByClassName('navbar-brand')[0].addEventListener("click", () 
     var audio = new Audio('src/resources/a-whole-new-world-cropped.mp3');
     audio.play();
 });
-
-/**
- * This method reverses the collapsing of the 'findPaths' button, as it's toggle panel to display begins open.
- */
-document.getElementById('findPaths').addEventListener("click", () => {
-    if (document.getElementById('findPaths').classList.contains('collapsed')) {
-        document.getElementById('findPaths').classList.add('active');           
-    } else {                                                                    
-        document.getElementById('findPaths').classList.remove('active');
-    }
-});
