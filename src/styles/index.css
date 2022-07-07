@@ -1,6 +1,7 @@
 html, body {
     height: 100%;
     margin: 0;
+    overflow-x: hidden;
 }
 
 .whiteText {
@@ -188,6 +189,67 @@ canvas {
     right: 16px;
 }
 
-.poppin { /* text input popup */
+#helpMessage {
     position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: clamp(225px, 50%, 1000px);
+    height: 65%;
+    background-color: white;
+    padding: 5px;
+    border: 2px solid blue;
+    display: flex;
+    flex-direction: column;
+}
+
+.helpHeader {
+    color: black;
+    text-align: center;
+    margin: 10px;
+}
+
+.helpMessage {
+    text-align: center;
+    font-size: 13pt;
+    padding: 5px;
+}
+
+img {
+    height: 50%;
+    padding: 10px;
+    object-fit: contain;
+}
+
+#helpImg {
+    flex: 1 1 auto;
+}
+
+.bottom {
+    position: absolute;
+    bottom: 1%;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.poppin { /* Used by graph input textboxes */
+    position: absolute;
+}
+
+.buttonText { 
+    background-color: #0d6efd;
+    border-radius: 3px;
+    color: white;
+    padding: 3px;
+    display: inline-block;
+}
+
+#closeTutorial {
+    position: absolute;
+    right: 15px;
+    top: 14px;
+    cursor: pointer;
+    font: 10pt Arial;
 }

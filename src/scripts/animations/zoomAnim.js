@@ -1,8 +1,10 @@
 import { clear, view, Point } from '../graph/graphView.js';
-import { getReciprocal } from '../general/utility.js';
+import { getDistance, getReciprocal } from '../general/utility.js';
 
 const canvas = document.getElementById('graphView');
 const ctx = canvas.getContext('2d');
+
+/** The distance of the two mobile 'touch' points for determining whether zooming in or out. */
 let zoomTouchDist = 0;
 
 /**
@@ -15,12 +17,12 @@ function scale1Instantly () {
     let pos = view.getPosition()
     let scaleRecip = getReciprocal(zoomScale);
 
-    let targetX = (zoomScale != view.getZoomScale()) ? pos.x : 1;
-    let targetY = (zoomScale != view.getZoomScale()) ? pos.y : 1;
+    let targetX = pos.x;
+    let targetY = pos.y;
 
     let at = {
-        x: (-scaleRecip * pos.x + 1) / (targetX - (scaleRecip == 1) ? 2 : scaleRecip), // doesn't work with 
-        y: (-scaleRecip * pos.y + 1) / (targetY - (scaleRecip == 1) ? 2 : scaleRecip)  // scaleRecip as 1
+        x: (-scaleRecip * pos.x + 1) / (targetX - (scaleRecip == 1) ? 2 : scaleRecip), 
+        y: (-scaleRecip * pos.y + 1) / (targetY - (scaleRecip == 1) ? 2 : scaleRecip) 
     }
 
     view.scaleAt(at, scaleRecip);
@@ -72,7 +74,13 @@ function scale1Anim (to1 = true, rate = .1, overlaySpeed = .1) {
     });
 }
 
-function zoomScaleHandler (e) {
+/**
+ * Handles updating {@link view}'s zoom scale from either the desktop 'mousewheel' event or mobile 
+ * 'touchmove' event containing two touch points.
+ * 
+ * @param {*} e A 'mousewheel' or 'touchmove' event containing two touch points.
+ */
+function updateZoomScale (e) {
     var e = window.event || e;
     var center, touchDelta;
     if (e.type === 'touchmove') {
@@ -92,10 +100,6 @@ function zoomScaleHandler (e) {
     }
 }
 
-function getDistance (v1, v2) {
-    return Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y));
-}
-
 function getDistanceHalfPoint (v1, v2) {
     var halfDist = getDistance(v1, v2) / 2;
     var angle = Math.atan2(v2.y - v1.y, v2.x - v1.x);
@@ -105,4 +109,4 @@ function getDistanceHalfPoint (v1, v2) {
     };
 }
 
-export { scale1Anim, scale1Instantly, getDistance, getDistanceHalfPoint, zoomScaleHandler };
+export { scale1Anim, scale1Instantly, getDistance, getDistanceHalfPoint, updateZoomScale };

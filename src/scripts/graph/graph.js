@@ -17,9 +17,10 @@ class TwoEqualsMap extends Map {
 
         /* Searches for the vertex by its name property if not found, as JavaScript Maps set keys that are
          * objects to thier reference value. */
-        let name = (typeof key === 'string') ? key : (key.hasOwnProperty('name')) ? key.name : null;
+        let name = (typeof key === 'string') ? key : (key.hasOwnProperty('name')) ? String(key.name) : "noname";
 
-        if (!name) {
+        if (name === "noname") {
+            console.log(name);
             throw new TypeError("The key must be an object with an equal 'name' property or the name " +
                 "as a String.");
         }
@@ -42,13 +43,13 @@ class TwoEqualsMap extends Map {
     has(key) {
 
         let has = super.has(key);
-        if (has) return has;
+        if (has) return key;
 
         let name = (typeof key === 'string') ? key : (key.hasOwnProperty('name')) ? key.name : null;
 
         if (!name) {
-            throw new TypeError("The key must be an object with an equal 'name' property or the name " +
-                "as a String.");
+            throw new TypeError("The \'key\' to search for must be an object with an equalling 'name' property or "
+                + "a String of the 'name'.");
         }
 
         for (let [vertex, neighbors] of this) {
@@ -305,13 +306,20 @@ export class Graph {
         return false;
     }
 
+    getVertex(v) {
+        return this.neighbors.has(v);
+    }
+
     getVertices () {
         return JSON.parse(JSON.stringify([...this.neighbors.keys()]));
     }
 
+    getVertexNeighbors(v) {
+        return this.neighbors.get(v);
+    }
+
     getNeighbors () {
-        return this.neighbors;
-        //return new TwoEqualsMap(JSON.parse(JSON.stringify([...this.neighbors])));
+        return JSON.parse(JSON.stringify([...this.neighbors.values()]));
     }
 
     getSize() {

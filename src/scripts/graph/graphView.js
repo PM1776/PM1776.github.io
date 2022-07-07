@@ -47,44 +47,6 @@ function clear() {
 }
 
 /**
- * Resizes the #graphView canvas to x and y parameters in an animation, beginning at a specified speed and slows
- * down until resized.
- * 
- * @param {Number} targetX the 'x' co-ordinate to resize to.
- * @param {Number} targetY the 'y' co-ordinate to resize to.
- * @returns true if successful and false if otherwise.
- */
-function resizeAnim(targetX, targetY) {
-    let canvasDoubleW = 0.0, canvasDoubleH = 0.0; // stores canvas dimensions in doubles to be more precise
-
-    return new Promise(resolve => {
-        let resize = () => {
-
-            let changeX = (targetX - canvas.width) * .12;
-            let changeY = (targetY - canvas.height) * .12;
-
-            let DPRSpeed = .052, DPRSpeedX = targetX * DPRSpeed, DPRSpeedY = targetY * DPRSpeed;
-            let lowestSpeed = .38;
-
-            canvasDoubleW += (changeX > lowestSpeed) ? (changeX < DPRSpeedX) ? changeX : DPRSpeedX : lowestSpeed;
-            canvasDoubleH += (changeY > lowestSpeed) ? (changeY < DPRSpeedY) ? changeY : DPRSpeedY : lowestSpeed;
-
-            canvas.width = canvasDoubleW;
-            canvas.height = canvasDoubleH;
-            
-            if (canvas.width < targetX || canvas.height < targetY) {
-                requestAnimationFrame(resize);
-            } else {
-                resolve();
-                scaleToDPR();
-                return true;
-            }
-        }
-        requestAnimationFrame(resize);
-    });
-}
-
-/**
  * Resizes #graphView to the specified width and height instantly, additionally scaling it with the 
  * @see {@link scaleToDPR} method.
  * 
@@ -266,14 +228,14 @@ function renderRemoveVertex(v, graph) {
 
     clear();
 
-    v = graph.getNeighbors().has(v);
-    let neighbors = graph.getNeighbors().get(v);
+    v = graph.getVertex(v);
+    let neighbors = graph.getVertexNeighbors(v);
 
     graph.removeVertex(v);
 
-    for (let v2 of neighbors) {
-        drawEdge(v, v2, 'red', null);
-        drawVertex(v2);
+    for (let edge of neighbors) {
+        drawEdge(v, edge.v, 'red', null);
+        drawVertex(edge.v);
     }
 
     drawGraph(graph, false);
@@ -329,11 +291,15 @@ function drawVerticesNames (vertices, font, color, withBackground, translate, ct
  * Draws an edge, or a line connecting two points, from one vertex to another in an optional color. 
  * Can additionally specify a vertex color to redraw the edge vertices.
  * 
- * @param {Point} v1 the first vertex of the edge.
- * @param {Point} v2 the second vertex of the edge.
- * @param {string} edgeColor the color to draw the edge, defaulted to black.
- * @param {string} verticesColor the color to draw the vertices of the incident edge. It is by default
+ * @param {Point} v1 The first vertex of the edge.
+ * @param {Point} v2 The second vertex of the edge.
+ * @param {string} edgeColor The color to draw the edge, defaulted to black.
+ * @param {string} verticesColor The color to draw the vertices of the incident edge. It is by default
  *      set to <b>color</b>, with a value of 'null' to not render them.
+ * @param {number} lineWidth The width to draw the edge. Defaulted to 2.
+ * @param {number} weight Optional text to draw in the center of the edge.
+ * @param {boolean} translate Essentially, the option to draw the edge scaled. It translates the point as if it
+ * were scaled to {@link view}'s zoom scale, which works with {@link view}'s position to animate zooming in and out. 
  */
 function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineWidth = 2, weight, translate) {
 
@@ -368,7 +334,7 @@ function drawEdge (v1, v2, edgeColor = 'black', verticesColor = edgeColor, lineW
  * Draws a string in the center of two points with a white background behind it.
  * 
  * @param {*} v1 a first object with 'x' and 'y' properties.
- * @param {*} v2 a second object with 'x' and 'y' properties.
+ * @param {Po*int} v2 a second object with 'x' and 'y' properties.
  * @param {string} weight the text to draw between the two point objects, relating to their 'x' and 'y' properties.
  * @param {string} color the color to draw the text.
  * @param {*} ctx the context of the canvas element to draw the string on.
@@ -393,12 +359,7 @@ function drawEdgeWeight (v1, v2, weight, color = 'black', ctx = canvas.getContex
     ctx.rotate(angle);
     ctx.translate(-center.x, -center.y);
 
-    drawTextWithBackground(String(weight), center, 'white');
-
-    ctx.fillStyle = color;
-    ctx.font = EDGE_FONT;
-    ctx.textAlign = 'center';
-    ctx.fillText(weight, center.x, center.y + 5);
+    drawTextWithBackground(String(weight), center, 'white', undefined, ctx);
 
     ctx.restore();
 }
@@ -444,16 +405,22 @@ function drawDirectionalEdge (v1, v2, color = 'black', verticesColor = color, we
  * redraws after the arrow moves. This results in very blurry backgrounds at the end 
  * of the edge, as the arrow slows down the closer it gets to its target.
  * 
- * @param {Point} v1 the vertex to begin sliding from.
- * @param {Point} v2 the vertex to slide to.
- * @param {string} edgecolor the color of the edge. 
- * @param {string} verticesColor the color of the incident vertices.
- * @param {string} arrowColor the color of the arrow.
+ * @param {Point} v1 The vertex to begin sliding from.
+ * @param {Point} v2 The vertex to slide to.
+ * @param {boolean} keepOnCanvas The option to draw the animation on #graphView canvas when finished.
+ * @param {number} decreasingPercentage A number greater than 0 and 1 that effects the speed of the animation, 
+ * with 0 not moving the edge at all and 1 moving the edge instantaniously. Defaulted to 0.9.
+ * @param {string} edgeColor The color of the edge. Defaulted to 'black'.
+ * @param {string} verticesColor The color of the incident vertices. Defaulted to edgeColor
+ * @param {string} arrowColor The color of the arrow. Defaulted to 'blue'.
+ * @param {Number} weight Optional text to draw in the center of the edge.
  */
 function drawDirectionalEdgeAnim (v1, v2, keepOnCanvas = true, decreasingPercentage = .9,
     edgeColor = 'black', verticesColor = edgeColor, arrowColor = 'blue', weight) {
 
     checkIfNumbers({ decreasingPercentage });
+    if (decreasingPercentage <= 0 || decreasingPercentage > 1) throw new TypeError("'decreasingPercentage' must"
+        + "be a number greater than 0 and 1.");
     checkIfColors({ arrowColor });
     // checks all other params in drawEdge()
 
@@ -574,7 +541,7 @@ function renderNewEdge(u, v, graph) {
  * @param {string} color the color to draw the background.
  * @param {string} color the color to draw the text.
  */
-function drawTextWithBackground (text, point, bgColor, textColor = 'black') {
+function drawTextWithBackground (text, point, bgColor, textColor = 'black', ctx = canvas.getContext('2d')) {
 
     checkIfString({ text });
     checkIfXYProp({ point });
@@ -606,9 +573,9 @@ async function drawGraph (graph, clearr = true, edgeDrawing) {
     if (clearr) clear();
     
     // Draws edges and vertices
-    graph.getNeighbors().forEach((neighbors, vertex) => {
+    graph.getVertices().forEach((vertex) => {
 
-        for (let neighbor of neighbors) {
+        for (let neighbor of graph.getVertexNeighbors(vertex)) {
 
             switch (edgeDrawing) {
                 case 1:
@@ -782,8 +749,8 @@ function isShowingNewNotification(message) {
 
 /**
  * This method creates a text input at a specified x and y (centers on x) and runs the passed in
- * methods when the clicked away (<b>blur</b> param) or hitting the 'enter' key (<b>blur</b> and <b>enter</b> 
- * params). The onblur event handler, by default, runs before an element is removed, so when removing the 
+ * methods when clicked away (<b>blur</b>) or hitting the 'enter' key (<b>blur</b> and <b>enter</b>. 
+ * The onblur event handler, by default, runs before an element is removed, so when removing the 
  * element after pressing the 'enter' key, the blur param will run again. Therefore, it may be important to provide 
  * conditions in the blur parameter that check if the enter parameter has run so as to not provide the same 
  * effect as when simply blurred away.
@@ -791,14 +758,14 @@ function isShowingNewNotification(message) {
  * @param {*} point A point to place to text input, and centering on the 'x' co-ordinate.
  * @param {string} defaultValue The value put as the text input's placeholder.
  * @param {function} blur A function that runs when the input's onblur event handler runs.
- * @param {function} enter A function that runs with a parameter of the text input value when the 'enter' key is pressed.
- *      Can return true for successful entry, and false for otherwise.
+ * @param {function} enter A function that runs with a parameter of the text input value when the 'enter' key is 
+ * pressed. Can return true for successful entry, and false for otherwise.
  */
  async function showGraphInput (point, defaultValue, blur, enter) {
 
     checkIfPoints({ point });
     checkIfString({ defaultValue });
-    checkIfFuncs()
+    checkIfFuncs({ blur, enter });
 
     return new Promise(resolve => {
         let popup = document.createElement("input");
@@ -830,8 +797,40 @@ function isShowingNewNotification(message) {
                 e.stopPropagation();
             }
         };
-        setTimeout(() => popup.focus(), 10);
+        setTimeout(() => popup.focus(), 50);
     });
+}
+
+async function showInputForVertex(point, graph) {
+
+    const headerHeight = document.getElementById('header').getBoundingClientRect().height;
+    const legendHeight = document.getElementById('legend').getBoundingClientRect().height;
+
+    const canvasPoint = graphCoorToCanvasCoor(point);
+
+    let pointCount = graph.getSize();
+
+    let enter = (inputValue) => {
+        let duplicate = false;
+        for (let key of graph.getVertices()) {
+            if (key.name === inputValue) {
+                duplicate = true;
+                break;
+            }
+        }
+        if (!duplicate) {
+            graph.setVertexName(point, inputValue);
+            pointCount++;
+        } else {
+            showNotification("Point name must be unique.");
+            return false;
+        }
+    }, blur = () => { // will run both when the user clicks away and hits 'enter'
+        if (point.name == null) graph.removeVertex(point);
+        drawGraph(graph);
+    }, inputPoint = new Point(canvasPoint.x, headerHeight + legendHeight + canvasPoint.y - TEXT_ABOVE_VERTEX);
+
+    await showGraphInput(inputPoint, String(pointCount), blur, enter);
 }
 
 /**
@@ -855,16 +854,16 @@ async function showInputForEdge (v1, v2, graph) {
     let halfLength = distance / 2;
     let x = c2.x - halfLength * Math.cos(angle);
     let y = c2.y - halfLength * Math.sin(angle) + headerHeight + legendHeight;
-    let blur = () => {
-        drawGraph(graph);
-    };
     let enter = (inputValue) => {
         if (!isNaN(inputValue) && !(Number(inputValue) == 0)) {
             graph.setWeight(v1, v2, Number(inputValue));
         } else {
             showNotification("Input for connecting points must be a number ('0' for no 'weight'" +
-                "on the connection)")
+                "on the connection)");
+                return false;
         }
+    }, blur = () => {
+        drawGraph(graph);
     };
     await showGraphInput(new Point(x, y), String(Math.floor(distance * 4.5)), blur, enter);
 }
@@ -945,9 +944,9 @@ class GradObject {
 
 export { VIEW_CHANGES, GRAD_BY_X, GRAD_BY_Y, POINT_RADIUS, MOBILE, TEXT_ABOVE_VERTEX, DPR,
     DRAW_EDGE, DRAW_EDGE_ARROWS, DRAW_EDGE_ARROWS_ANIM,
-    clear, resizeAnim, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
+    clear, scaleToDPR, resizeInstantly, renderNewVertex, renderNewEdge, renderRemoveVertex, 
     drawVertex, drawVertices, drawEdge, drawDirectionalEdge, drawDirectionalEdgeAnim, drawGraph,
-    showNotification, showGraphInput, showInputForEdge, zoom, resetCtxTransform, canvasCoorToGraphCoor,
+    showNotification, showInputForVertex, showInputForEdge, zoom, resetCtxTransform, canvasCoorToGraphCoor,
     graphCoorToCanvasCoor,
     view, Point, GradObject
 };

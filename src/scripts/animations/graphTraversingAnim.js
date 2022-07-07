@@ -1,9 +1,11 @@
 import { SearchTree, Graph } from '../graph/graph.js';
-import { drawDirectionalEdgeAnim, drawVertex, drawVertices, showNotification } from '../graph/graphView.js';
+import { drawDirectionalEdgeAnim, drawGraph, drawVertex, drawVertices, showNotification } from '../graph/graphView.js';
 
 const COLOR = 'blue';
 const AWAIT_TIME = 250;
-const ARROW_SPEED = .94;
+/** Higher decimal increases time. Speed to completely travel to point to finish animation. */
+const ARROW_SPEED = .95;
+/** Higher decimal increases time. Speed when only waiting for AWAIT_TIME to finish animation */
 const ARROW_SPEED_BY_TIME = .93;
 const MESSAGE_TIME = 10000;
 
@@ -70,6 +72,7 @@ async function breadthFirstAnim (searchTree, searchingFor, graph) {
             searchLevel.get(parents[vertex]).push(vertex);          
             await visualizeLevel(searchLevel, graph);       // will never visualize level twice, as it runs visualization
             showResults(searchTree, searchingFor, MESSAGE_TIME, toSearchCount); // once no longer on the level
+            searchTree.printTree();
             return;
         }
 
@@ -124,13 +127,13 @@ async function minimumSpanningTreeAnim (searchTree, graph) {
     for (let vertex in parents) {
         let v1 = JSON.parse(parents[vertex]), v2 = JSON.parse(vertex);
         result = drawDirectionalEdgeAnim(v1, v2, true, .95, undefined,
-            undefined, undefined, graph.getWeight(graph.getNeighbors().has(v1), graph.getNeighbors().has(v2)));
+            undefined, undefined, Number(graph.getWeight(graph.getVertex(v1), graph.getVertex(v2))));
     }
 
     drawVertices(graph.getVertices(), undefined, false, 'blue');
     await result;
     
-    showNotification("Smallest distance to travel to every point: <b>" + searchTree.getTotalWeight() + "</b>", 
+    showNotification("Smallest Distance Travelling to Every Point: <b>" + searchTree.getTotalWeight() + "</b>", 
         MESSAGE_TIME);
 }
 
@@ -171,7 +174,7 @@ async function shortestPathAnim (searchTree, searchingFor, graph) {
 async function animToPoint (v1, v2, graph, byTime) {
     let speed = (!byTime) ? ARROW_SPEED : ARROW_SPEED_BY_TIME;
     let result = drawDirectionalEdgeAnim(v1, v2, true, speed, undefined, undefined, undefined, 
-        graph.getWeight(graph.getNeighbors().has(v1), graph.getNeighbors().has(v2)));
+        Number(graph.getWeight(graph.getVertex(v1), graph.getVertex(v2))));
     drawVertex(v1, COLOR);
     drawVertex(v2, COLOR);
 
@@ -194,7 +197,8 @@ async function animToPoint (v1, v2, graph, byTime) {
 function showResults (searchTree, searchingFor, time, toSearchCount, additionalMessage) {
     let path = searchTree.getPath(searchingFor);
 
-    let pathString = "Path Found: <b>" + searchTree.getRoot().name + "</b> > ";
+    let pathString = "Path found from <i>" + searchTree.getRoot().name + "</i> to <i>" + searchingFor.name 
+        + "</i>: <b>" + searchTree.getRoot().name + "</b> > ";
     pathString += (path.length == 1) ? "<b>" + JSON.parse(path[0]).name + "</b>" :
         path.reduce((prev, val, i) => "<b>" + JSON.parse(val).name + "</b> > " + 
         ((i == 1) ? "<b>" + JSON.parse(prev).name + "</b>" : prev));

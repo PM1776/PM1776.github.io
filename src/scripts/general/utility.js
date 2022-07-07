@@ -1,3 +1,6 @@
+import { Point } from '../graph/point.js';
+import { canvasCoorToGraphCoor } from '../graph/graphView.js';
+
 /**
  * Checks if the device is a mobile phone.
  * 
@@ -50,4 +53,34 @@ export function getCenterPoint(v1, v2) {
         x: v2.x - halfLength * Math.cos(angle),
         y: v2.y - halfLength * Math.sin(angle)
     };
+}
+
+/**
+ * Determines the distance between two points.
+ * 
+ * @param {Point} v1 A point containing 'x' and 'y' properties.
+ * @param {Point} v2 A second point containing 'x' and 'y' properties.
+ * @returns 
+ */
+export function getDistance (v1, v2) {
+    return Math.sqrt((v2.x - v1.x) * (v2.x - v1.x) + (v2.y - v1.y) * (v2.y - v1.y));
+}
+
+/**
+ * A utility method to get the canvas co-ordinates from the event.
+ * 
+ * @param {*} e the event data.
+ * @param {boolean} toGraphCoor If true, additionally converts the event co-ordinates to its co-ordinates in the graph.
+ * @returns a {@link Point} object with the 'x' and'y' data.
+ */
+ export function getEventPoint(e, toGraphCoor) {
+    const CANVAS_MARGIN = parseInt(window.getComputedStyle(document.getElementById('canvasContainer')).marginTop);
+    const headerHeight = document.getElementById('header').getBoundingClientRect().height;
+    const legendHeight = document.getElementById('legend').getBoundingClientRect().height;
+
+    let point = (e.type == 'mousedown' || e.type == 'mousemove' || e.type == 'mouseup') ? 
+        new Point(e.clientX - CANVAS_MARGIN, e.clientY - headerHeight - legendHeight - CANVAS_MARGIN + window.scrollY)
+        : new Point(e.touches[0].clientX - CANVAS_MARGIN, e.touches[0].clientY - headerHeight - legendHeight 
+            - CANVAS_MARGIN + window.scrollY);
+    return (!toGraphCoor) ? point : canvasCoorToGraphCoor(point);
 }
