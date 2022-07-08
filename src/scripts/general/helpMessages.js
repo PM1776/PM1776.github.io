@@ -4,15 +4,15 @@ export const HELP_MESSAGES = [
         message: ["Appearently, the world is too small to name this structure differently from a 'graph' in Math. ",
         "So what the heck is a graph then?</br></br>Feel free to skip this tutorial if you'd like to just go for it, and ",
         "to click on the title."].join(''),
-        image: '../src/resources/favicon.png' // location starts at index.html
+        image: './src/resources/favicon.png' // location starts at index.html
     },
     { 
         header: "The Graph Programmers Know and Love", 
-        message: ["A basic graph is a list of objects, with each object containing its own, typically smaller ",
+        message: ["A graph is essentially a list of objects, with each object containing its own, typically smaller, ",
         "list of objects with some kind of connection in the graph. Facebook uses them to hold people's data and ",
-        "who they're friends with, and Google Maps uses them in storing locations and their neighboring ",
+        "who they're friends with, and Google Maps uses them in storing locations and a location's neighboring ",
         "locations."].join(''),
-        image: '../src/resources/graph rep.png'
+        image: './src/resources/graph rep.png'
     },
     { 
         header: "Customizing Graph Visualizer", 

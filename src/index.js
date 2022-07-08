@@ -1,17 +1,17 @@
-import Graph from './graph/graph.js';
+import Graph from './scripts/graph/graph.js';
 import { MOBILE, TEXT_ABOVE_VERTEX, POINT_RADIUS, resizeInstantly, renderNewVertex, 
     renderNewEdge, renderRemoveVertex, drawVertex, drawEdge, drawGraph, drawVertices, 
     clear, drawDirectionalEdgeAnim, showNotification, showInputForEdge, view, zoom, DPR, 
-    resetCtxTransform, canvasCoorToGraphCoor, graphCoorToCanvasCoor } from './graph/graphView.js';
+    resetCtxTransform, canvasCoorToGraphCoor, graphCoorToCanvasCoor } from './scripts/graph/graphView.js';
 import { addRemove, moveEdge, dropEdge, touchStart, touchMove, touchEnd, onmousewheel,
-    setGraphDisabled } from './graph/graphController.js'; 
-import { resizeAnim } from './animations/resizeAnim.js';
-import { mergeSort } from './algorithms/mergeSort.js';
-import { findClosestPairIn } from './algorithms/closestPairOfPoints.js';
-import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim } from './animations/graphTraversingAnim.js';
-import { scale1Instantly } from './animations/zoomAnim.js';
-import { loadGraphMap, loadUSGraph } from './graph/maps.js';
-import { HELP_MESSAGES } from './general/helpMessages.js';
+    setGraphDisabled } from './scripts/graph/graphController.js'; 
+import { resizeAnim } from './scripts/animations/resizeAnim.js';
+import { mergeSort } from './scripts/algorithms/mergeSort.js';
+import { findClosestPairIn } from './scripts/algorithms/closestPairOfPoints.js';
+import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim } from './scripts/animations/graphTraversingAnim.js';
+import { scale1Instantly } from './scripts/animations/zoomAnim.js';
+import { loadGraphMap, loadUSGraph } from './scripts/graph/maps.js';
+import { HELP_MESSAGES } from './scripts/general/helpMessages.js';
 
 var graph;
 var canvas;
