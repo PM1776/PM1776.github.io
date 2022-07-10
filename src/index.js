@@ -258,8 +258,8 @@ function createLegendItem(classOfIcon, text) {
 function defaultLegend () {
     document.getElementById('legend').innerHTML = '';
     createLegendItem((!MOBILE) ? 'click' : 'tap', "Add Point");
-    createLegendItem((!MOBILE) ? 'drag' : 'dragTap', "Connect");
     createLegendItem((!MOBILE) ? 'rightClick' : 'doubleTap', "Remove Point");
+    createLegendItem((!MOBILE) ? 'drag' : 'dragTap', "Connect");
     createLegendItem((!MOBILE) ? 'zoom' : 'zoomPinch', "Zoom");
 }
 
