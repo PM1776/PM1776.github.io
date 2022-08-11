@@ -154,7 +154,7 @@ export function touchStart (e, graph) {
                         edgeStartpt = v;
                         drawVertex(edgeStartpt, 'blue');
                     }
-                }, 1000);
+                }, 500);
             break;
         default:
             oneTouch = false;

@@ -118,7 +118,7 @@ export function checkIfNumbers(obj) {
 }
 
 /**
- * Throws an error if the object does not hold properties with values that ara functions. The 
+ * Throws an error if the object does not hold properties with values that are functions. The 
  * error thrown names the property key, which is checked objects are wrapped in an object.
  * 
  * @param {*} obj an object with property values to check (i.e. { str });

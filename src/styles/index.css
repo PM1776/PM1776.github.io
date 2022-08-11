@@ -194,7 +194,7 @@ canvas {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: clamp(225px, 50%, 1000px);
+    width: clamp(500px, 50%, 1000px);
     height: 65%;
     background-color: white;
     padding: 5px;

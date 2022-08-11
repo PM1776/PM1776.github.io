@@ -234,12 +234,12 @@ function renderRemoveVertex(v, graph) {
     graph.removeVertex(v);
 
     for (let edge of neighbors) {
-        drawEdge(v, edge.v, 'red', null);
-        drawVertex(edge.v);
+        drawEdge(v, edge.v, 'red', null, undefined, undefined, true);
+        drawVertex(edge.v, undefined, undefined, undefined, true);
     }
 
     drawGraph(graph, false);
-    drawVertex(v, 'red', undefined, true);
+    drawVertex(v, 'red', undefined, true, true);
 
     setTimeout(() => {
         drawGraph(graph, true);
@@ -614,6 +614,7 @@ const view = (() => {
         },
         getZoomScale() { return zoomScale },
         getPosition() { return pos },
+        resetPosition() { Object.defineProperties(pos, { x: { value: 0 }, y: { value: 0} }) },
         getDefaultTranslate() {
             return defTranslate;
         },
@@ -813,7 +814,7 @@ async function showInputForVertex(point, graph) {
     let enter = (inputValue) => {
         let duplicate = false;
         for (let key of graph.getVertices()) {
-            if (key.name === inputValue) {
+            if (String(key.name).toLowerCase() === String(inputValue).toLowerCase()) {
                 duplicate = true;
                 break;
             }

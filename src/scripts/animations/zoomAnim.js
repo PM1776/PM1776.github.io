@@ -26,6 +26,8 @@ function scale1Instantly () {
     }
 
     view.scaleAt(at, scaleRecip);
+    ctx.translate(-pos.x, -pos.y)
+    view.resetPosition();
     view.apply();
 }
 

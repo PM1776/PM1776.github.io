@@ -11,7 +11,7 @@ import { findClosestPairIn } from './scripts/algorithms/closestPairOfPoints.js';
 import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim } from './scripts/animations/graphTraversingAnim.js';
 import { scale1Instantly } from './scripts/animations/zoomAnim.js';
 import { loadGraphMap, loadUSGraph } from './scripts/graph/maps.js';
-import { HELP_MESSAGES } from './scripts/general/helpMessages.js';
+import { showHelpMessages, loadCurrentHelpPage } from './scripts/general/helpMessages.js';
 
 var graph;
 var canvas;
@@ -25,8 +25,6 @@ var legendHeight;
 let CANVAS_MARGIN;
 /** The margin + border size of the #graphView canvas. */
 let CANVAS_OFFSET;
-
-let helpPage = 0;
 
 window.addEventListener("resize", resize);
 window.addEventListener('orientationchange', e => {collapseNavbarToggle(false); resize(e)}, false); // for mobile
@@ -179,6 +177,7 @@ async function traverseGraph () {
 
     if (!((starting = graph.getVertex(starting)) && (searchingFor = graph.getVertex(searchingFor)))) {
         showNotification("Could not find the starting or searching point in the graph.", 5000);
+        return;
     }
     if (starting === searchingFor) {
         showNotification("Path Found: <b>" + starting.name + "</b></br>Search Length: <b>0</b></br></br>Humans.", 3000);
@@ -342,46 +341,10 @@ document.getElementById('findPaths').addEventListener("click", () => {
 document.getElementById('previous').addEventListener("click", showHelpMessages);
 document.getElementById('next').addEventListener("click", showHelpMessages);
 
-function showHelpMessages (e) {
-
-    // Checks the pre-helpPage value to determine if button text needs to be changed to its common text
-    changeIfEndingPages("Previous", "Next");
-
-    helpPage = (e.currentTarget.id == 'previous') ? --helpPage : ++helpPage;
-
-    if (helpPage < 0 || helpPage >= HELP_MESSAGES.length) {
-        document.getElementById('helpMessage').style.visibility = 'hidden';
-        return;
+document.getElementById('findPaths').addEventListener("click", () => {
+    if (document.getElementById('navbarToggleExternalContent').classList.contains('show')) {
+        document.getElementById('findPaths').classList.remove('active');
+    } else {
+        document.getElementById('findPaths').classList.add('active');
     }
-
-    // Changes to beginning or finishing button text if on those now
-    changeIfEndingPages("Skip", "Finish");
-
-    loadCurrentHelpPage();
-}
-
-function changeIfEndingPages(previousButtonText, nextButtonText) {
-    if (helpPage == 0) {
-        document.getElementById('previous').innerHTML = previousButtonText;
-    } else if (helpPage == HELP_MESSAGES.length - 1) {
-        document.getElementById('next').innerHTML = nextButtonText;
-    }
-}
-
-function loadCurrentHelpPage() {
-    document.getElementsByClassName('helpHeader')[0].innerHTML = HELP_MESSAGES[helpPage].header;
-    document.getElementsByClassName('helpMessage')[0].innerHTML = HELP_MESSAGES[helpPage].message;
-    document.getElementsByTagName('img')[0].src = HELP_MESSAGES[helpPage].image;
-}
-
-document.getElementById('tutorial').addEventListener("click", () => {
-    helpPage = 0;
-    loadCurrentHelpPage();
-    document.getElementById('previous').innerHTML = "Skip";
-    document.getElementById('next').innerHTML = "Next";
-    document.getElementById('helpMessage').style.visibility = 'visible';
-});
-
-document.getElementById('closeTutorial').addEventListener("click", () => {
-    document.getElementById('helpMessage').style.visibility = 'hidden';
 });
