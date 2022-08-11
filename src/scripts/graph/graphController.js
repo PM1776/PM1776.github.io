@@ -67,7 +67,7 @@ const VIBRATION_TIME = 100;
 }
 
 /**
- * Animates an edge that follows the mouse or tap if the second point is not finalized.
+ * Animates an edge that follows the mouse or mobile tap hold if the second point is not finalized.
  * 
  * @param {*} e The event data (handles both mouse and touch events).
  * @param {Graph} graph The graph object to draw behind the moving edge animation.
@@ -93,7 +93,9 @@ export async function dropEdge (e, graph, touchPoint) {
     if (!edgeStartpt) return false;
     
     let canvasPoint = (!(touchPoint instanceof Point)) ? getEventPoint(e) : touchPoint;
+    console.log(canvasPoint);
     let point = canvasCoorToGraphCoor(canvasPoint);
+    console.log(point);
     let vertexFound = graph.hasVertexInRadius(point, (!MOBILE) ? POINT_RADIUS : POINT_RADIUS * 3);
 
     let vertexStarted = edgeStartpt;
@@ -174,7 +176,7 @@ export function touchMove(e, graph) {
             oneTouch = moveEdge(e, graph); // stores the moving vertex for dropEdge(),
             break;                  // as 'touchend' handler doesn't store
         case 2:
-            onmousewheel(e);
+            onmousewheel(e, graph);
             break;
     }
 }
@@ -185,13 +187,13 @@ export function touchMove(e, graph) {
  * @param {Graph} graph The graph object to add or remove inputs to.
  * @returns true if successful, and false if otherwise.
  */
-export function touchEnd (e, graph) {
+export async function touchEnd (e, graph) {
     let status;
-    if (edgeStartpt) {
-        status = dropEdge(e, graph, oneTouch);
-    } else {
-        status = addRemove(e, graph, oneTouch);
+
+    if (oneTouch) {
+        status = (edgeStartpt) ? dropEdge(e, graph, oneTouch) : addRemove(e, graph, oneTouch);
     }
+
     oneTouch = false;
     return status;
 }

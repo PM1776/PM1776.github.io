@@ -11,7 +11,7 @@ import { findClosestPairIn } from './scripts/algorithms/closestPairOfPoints.js';
 import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPathAnim } from './scripts/animations/graphTraversingAnim.js';
 import { scale1Instantly } from './scripts/animations/zoomAnim.js';
 import { loadGraphMap, loadUSGraph } from './scripts/graph/maps.js';
-import { showHelpMessages, loadCurrentHelpPage } from './scripts/general/helpMessages.js';
+import { loadCurrentHelpPage } from './scripts/general/helpMessages.js';
 
 var graph;
 var canvas;
@@ -52,6 +52,7 @@ window.addEventListener("load", async (e) => {
     legendHeight = legend.getBoundingClientRect().height;
     CANVAS_MARGIN = parseInt(window.getComputedStyle(document.getElementById('canvasContainer')).marginTop);
     CANVAS_OFFSET = CANVAS_MARGIN + parseInt(window.getComputedStyle(canvas).border);
+    document.getElementById('alert').style.backgroundColor = 'rgba(224, 224, 224, .9)';
 
     canvas.addEventListener("mousedown", (e) => addRemove(e, graph));
     canvas.addEventListener("touchstart", (e) => touchStart(e, graph));
@@ -337,9 +338,6 @@ document.getElementById('findPaths').addEventListener("click", () => {
         drawGraph(graph);
     }, 500);
 });
-
-document.getElementById('previous').addEventListener("click", showHelpMessages);
-document.getElementById('next').addEventListener("click", showHelpMessages);
 
 document.getElementById('findPaths').addEventListener("click", () => {
     if (document.getElementById('navbarToggleExternalContent').classList.contains('show')) {

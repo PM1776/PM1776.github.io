@@ -33,9 +33,9 @@ export const HELP_MESSAGES = [
     { 
         header: "Searching", 
         message: ["A main advantage of graphs is their searching ability throughout all the connections.</br></br>",
-        "Users can search the graph for a path using the <span class=buttonText>Find Paths</span> button.</br></br>",
-        "All the algorithms have starting points, and most have 'searching-for' ",
-        "points, which can be typed in the appropriate <span class=buttonText>Find Paths</span> inputs. </br></br>",
+        "Users can <i>search</i> the graph for a path using the <span class=buttonText>Find Paths</span> ",
+        "button.</br></br>All the algorithms use 'Starting From' points, and most have 'Searching For' ",
+        "points, which can be typed in the appropriate inputs. </br></br>",
         "The searching algorithm to use can be selected in the last dropdown of the <span class=buttonText>",
         "Find Paths</span> section."].join(''),
         image: ''
@@ -73,7 +73,10 @@ export const HELP_MESSAGES = [
     },
 ];
 
-export function showHelpMessages (e) {
+document.getElementById('previous').addEventListener("click", showHelpMessages);
+document.getElementById('next').addEventListener("click", showHelpMessages);
+
+function showHelpMessages (e) {
 
     // Checks pre-helpPage value to determine if button text needs to be changed
     changeIfOnEndingPages("Previous", "Next");
@@ -81,7 +84,7 @@ export function showHelpMessages (e) {
     helpPage = (e.currentTarget.id == 'previous') ? --helpPage : ++helpPage;
 
     if (helpPage < 0 || helpPage >= HELP_MESSAGES.length) {
-        document.getElementById('helpMessage').style.visibility = 'hidden';
+        closeHelpMessages();
         return;
     }
 
@@ -92,9 +95,9 @@ export function showHelpMessages (e) {
 }
 
 /**
- * Checks if the current help page is the first index or last index of HELP_MESSAGES, and changes the
- * 'previous' button text to previousButtonText param if first, or 'next' button text to nextButtonText
- * if last.
+ * Checks if the current help page is the first index or last index of HELP_MESSAGES, and changes
+ * 'previous' button text to previousButtonText param if first index, or 'next' button text to nextButtonText
+ * if last index.
  * @param {*} previousButtonText The text to change the 'previous' button text to if on the first index 
  * of HELP_MESSAGES.
  * @param {*} nextButtonText The text to change the 'next' button text to if on the last index of 
@@ -109,16 +112,19 @@ function changeIfOnEndingPages(previousButtonText, nextButtonText) {
 }
 
 export function loadCurrentHelpPage() {
+    let img = document.getElementsByTagName('img')[0]?.remove();
+    let helpMessage = document.getElementsByClassName('helpMessage')[0];
+
     document.getElementsByClassName('helpHeader')[0].innerHTML = HELP_MESSAGES[helpPage].header;
-    document.getElementsByClassName('helpMessage')[0].innerHTML = HELP_MESSAGES[helpPage].message;
-    
-    // Loads or hids the help img
-    document.getElementsByTagName('img')[0].style.display = (HELP_MESSAGES[helpPage].image != '') ?
-        'block' : 'none';
+    helpMessage.innerHTML = HELP_MESSAGES[helpPage].message;
+
+    // Re-appends or creates help <img> tag
     if (HELP_MESSAGES[helpPage].image != '') {
-        document.getElementsByTagName('img')[0].src = HELP_MESSAGES[helpPage].image;
+        
+        if (!img) img = document.createElement('img');
+        helpMessage.appendChild(img);
+        img.src = HELP_MESSAGES[helpPage].image;
     }
-    
 }
 
 document.getElementById('tutorial').addEventListener("click", () => {
@@ -126,9 +132,11 @@ document.getElementById('tutorial').addEventListener("click", () => {
     loadCurrentHelpPage();
     document.getElementById('previous').innerHTML = "Skip";
     document.getElementById('next').innerHTML = "Next";
-    document.getElementById('helpMessage').style.visibility = 'visible';
+    document.getElementById('helpMessage').style.display = 'block';
 });
 
-document.getElementById('closeTutorial').addEventListener("click", () => {
-    document.getElementById('helpMessage').style.visibility = 'hidden';
-});
+document.getElementById('closeTutorial').addEventListener("click", closeHelpMessages);
+
+function closeHelpMessages () {
+    document.getElementById('helpMessage').style.display = 'none';
+}
