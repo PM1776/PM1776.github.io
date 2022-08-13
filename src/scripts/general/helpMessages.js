@@ -12,9 +12,9 @@ export const HELP_MESSAGES = [
     },
     { 
         header: "The Graph Programmers Know and Love", 
-        message: ["A graph is essentially a list of objects, with each object provided its own ",
+        message: ["A graph is essentially a list of objects with each object containing its own ",
         "list of objects for some kind of connection in the graph. Facebook uses them to hold people's data and ",
-        "who they're friends with, and Google Maps uses them in storing locations and locations' neighboring ",
+        "who they're friends with, and Google Maps uses them storing locations and locations' neighboring ",
         "locations."].join(''),
         image: './src/resources/graph rep.png'
     },

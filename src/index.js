@@ -12,6 +12,7 @@ import { depthFirstAnim, breadthFirstAnim, minimumSpanningTreeAnim, shortestPath
 import { scale1Instantly } from './scripts/animations/zoomAnim.js';
 import { loadGraphMap, loadUSGraph } from './scripts/graph/maps.js';
 import { loadCurrentHelpPage } from './scripts/general/helpMessages.js';
+import { checkIfString } from './scripts/general/errorHandling.js';
 
 var graph;
 var canvas;
@@ -43,7 +44,7 @@ document.getElementById('binary').addEventListener("click", loadGraph);
 window.addEventListener("load", async (e) => {
     
     canvas = document.getElementById('graphView');
-    canvas.style.border = '2px solid black'; // couldn't access from initializing in css
+    canvas.style.border = '2px solid black'; // couldn't re-access from initializing in css
 
     header = document.getElementById('header');
     legend = document.getElementById('legend');
@@ -132,6 +133,7 @@ async function beginMergeSort(e) {
     disableButtons();
     await mergeSort(graph, axis);
     enableButtons();
+    
     defaultLegend();
     return true;
 }
@@ -156,6 +158,7 @@ async function findClosestPair () {
     disableButtons();
     await findClosestPairIn(graph);
     enableButtons();
+
     defaultLegend();
     return true;
 }
@@ -214,6 +217,8 @@ async function traverseGraph () {
  */
 function createLegendItem(classOfIcon, text) {
 
+    checkIfString({ classOfIcon, text });
+
     let legendItem = document.createElement('div');
 
     let icon = document.createElement('div');
@@ -233,7 +238,7 @@ function createLegendItem(classOfIcon, text) {
  * prevent a gap at the bottom of the #graphView canvas.
  * 
  * @param {*} legendItems an array holding the arrays of items to create, with the item arrays containing 
- * its 'classOfIcon' in the first index and 'text' in the second.
+ * 'classOfIcon' in the first index and 'text' in the second.
  * @returns true if successful and false if otherwise.
  */
  function createLegendItems(legendItems) {
