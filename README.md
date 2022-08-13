@@ -6,11 +6,11 @@ The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualiz
 ## Supported Algorithm
 
 ### Graph Searching Algorithms
-<b>Depth-First</b> - Searches from a point by exploring every connection attached to one of its 'neighbors', or points connected, before going on to another, and does this recursively, digging through one 'neighbor' branch before going on to the next.
+<b>Depth-First</b> - Searches from a point by exploring every connection attached to one of its 'neighbors,' or points connected, before going on to another.
 
-<b>Breadth-First</b> - Explores all a point's neighbors, or points connected, before searching all the neighbors of those neighbors.
+<b>Breadth-First</b> - Explores all of a starting point's neighbors, or points connected, before searching all the neighbors of those neighbors.
 
-<i>Uses connection 'weights' (i.e. for storing miles)</i></br>
+<i>Uses Connection 'Weights' (i.e. for storing miles)</i></br>
 <b>Minimum Spanning Tree</b> - Determines the least 'weightiest' way to travel to every point in the graph.
 
 <b>Shortest Path</b> - Determines the least 'weightiest' path from one point to another.
