@@ -6,17 +6,17 @@ The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualiz
 ## Supported Algorithm
 
 ### Graph Searching Algorithms
-<b>Depth-First</b> - Searches from a point by exploring every connection it can find in one of its 'neighbors', or points connected, before going on to another, and does this recursively, digging through one 'neighbor' branch before going on to the next.
+<b>Depth-First</b> - Searches from a point by exploring every connection attached to one of its 'neighbors', or points connected, before going on to another, and does this recursively, digging through one 'neighbor' branch before going on to the next.
 
 <b>Breadth-First</b> - Explores all a point's neighbors, or points connected, before searching all the neighbors of those neighbors.
 
-<i>Uses connection 'weights' (i.e. storing miles)</i></br>
+<i>Uses connection 'weights' (i.e. for storing miles)</i></br>
 <b>Minimum Spanning Tree</b> - Determines the least 'weightiest' way to travel to every point in the graph.
 
 <b>Shortest Path</b> - Determines the least 'weightiest' path from one point to another.
 
 ### Additional Algorithms
-<b>Merge Sort</b> - Sorts the points in the graph by either their 'X' co-ordinate or 'Y' co-ordinate by spliting the list into sub-sections and merging those sorted subsections.
+<b>Merge Sort</b> - Sorts the points in the graph by either their 'X' or 'Y' co-ordinate by spliting and sorting the list in sub-sections, and merging those subsections.
 
 <b>Closest Pair of Points</b> - Finds the closest pair in the graph by determining the closest pair in smaller sections and merging those sub-sections (Divide and Conquer method).
 
