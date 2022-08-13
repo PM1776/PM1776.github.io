@@ -16,7 +16,7 @@ The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualiz
 <b>Shortest Path</b> - Determines the least 'weightiest' path from one point to another.
 
 ### Additional Algorithms
-<b>Merge Sort</b> - Sorts the points in the graph by either their 'X' or 'Y' co-ordinate by spliting and sorting the list in sub-sections, and merging those subsections.
+<b>Merge Sort</b> - Sorts the points in the graph by either their 'X' or 'Y' co-ordinate through spliting and sorting the list in sub-sections, and merging those sub-sections.
 
 <b>Closest Pair of Points</b> - Finds the closest pair in the graph by determining the closest pair in smaller sections and merging those sub-sections (Divide and Conquer method).
 
