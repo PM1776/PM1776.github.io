@@ -6,15 +6,15 @@ export const HELP_MESSAGES = [
     { 
         header: "Graph Visualizer", 
         message: ["The english vocab is, apprarently, too small to name this 'graph' separate from the 'graph' in Math. ",
-        "So what on earth is a programmer's graph?</br></br>Feel free to skip this tutorial if you'd like to just ",
+        "So what on earth is the programmer's graph?</br></br>Feel free to skip this tutorial if you'd like to just ",
         "go for it, and to click on the title."].join(''),
         image: './src/resources/favicon.png' // location starts at index.html
     },
     { 
         header: "The Graph Programmers Know and Love", 
-        message: ["A graph is essentially a list of objects, with each object containing its own, typically smaller, ",
-        "list of objects with some kind of connection in the graph. Facebook uses them to hold people's data and ",
-        "who they're friends with, and Google Maps uses them in storing locations and a location's neighboring ",
+        message: ["A graph is essentially a list of objects, with each object provided its own ",
+        "list of objects for some kind of connection in the graph. Facebook uses them to hold people's data and ",
+        "who they're friends with, and Google Maps uses them in storing locations and locations' neighboring ",
         "locations."].join(''),
         image: './src/resources/graph rep.png'
     },
@@ -26,7 +26,8 @@ export const HELP_MESSAGES = [
         "<i>Adding Connections</i> - You can also ",
         ((!MOBILE) ? "begin dragging from a point to add a connection to it." : 
         "hold down on a point for half a second and drag from it to add a connection to it.") + "</br></br>",
-        "<i>Zooming</i> - A user can use the mouse wheel to zoom in and out.</br></br>",
+        "<i>Zooming</i> - A user can " + ((!MOBILE) ? "use the mouse wheel" : "tap with two fingers") + 
+        " to zoom in and out.</br></br>",
         "Users can additionally load pre-made maps using the <span class=buttonText>Change Map</span> dropdown."].join(''),
         image: ''
     },
@@ -36,7 +37,7 @@ export const HELP_MESSAGES = [
         "Users can <i>search</i> the graph for a path using the <span class=buttonText>Find Paths</span> ",
         "button.</br></br>All the algorithms use 'Starting From' points, and most have 'Searching For' ",
         "points, which can be typed in the appropriate inputs. </br></br>",
-        "The searching algorithm to use can be selected in the last dropdown of the <span class=buttonText>",
+        "The searching algorithm to use can be selected in the ending dropdown of the <span class=buttonText>",
         "Find Paths</span> section."].join(''),
         image: ''
     },
@@ -56,17 +57,17 @@ export const HELP_MESSAGES = [
     },
     { 
         header: "Additional Features", 
-        message: ["<i>Sorting</i> - Users can additionally sort the points based on their 'x' or 'y' co-ordinates ",
-        "using the <span class=buttonText>Sort</span> dropdown, which uses the algorithm, 'Merge Sort'.</br></br>",
+        message: ["<i>Sorting</i> - Users can additionally sort the points based on their 'X' or 'Y' co-ordinates ",
+        "using the <span class=buttonText>Sort</span> dropdown, which uses the Merge Sort algorithm.</br></br>",
         "<i>Closest Pair</i> - A last feature includes finding the closest pair of points in the graph, ",
-        "which visualizes using the 'Divide and Conquer' method."].join(''),
+        "which visualizes the 'Divide and Conquer' method."].join(''),
         image: ''
     },
     { 
         header: "Thanks so much for checking this project out!", 
         message: ["It has been incredibly learning for me, and I hope you find it interesting as well.</br></br>",
-        "The github repository can be found <a href=\'https://github.com/paulmeddaugh/Graph-Visualizer\'>here",
-        "</a>.</br></br>",
+        "The GitHub repository can be found <a href=\'https://github.com/paulmeddaugh/Graph-Visualizer\'>here",
+        "</a>.</br>",
         "The Trello board can be found <a href=\'https://trello.com/b/0vXmvjiV/graph-visualizer'>here",
         "</a>."].join(''),
         image: ''

@@ -1,6 +1,7 @@
 # Graph Visualizer
 Graph theory is incredibly helpful in the development world, providing capabilities such as holding the connections within a list and searching through those connections seemingly in ways only limited to one's creativity, all while allowing the same capabilities of an Array list. I built this application to learn about the graph data structure, and I hope it's as visualizing of graphs as it was for me in building it. It also is additionally mobile friendly. </br>
 The running application can be found here: https://paulmeddaugh.github.io/Graph-Visualizer/
+The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualizer
 
 ## The Algorithm Cast
 The following algorithms are supported in this application:
