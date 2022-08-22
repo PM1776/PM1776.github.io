@@ -161,7 +161,7 @@ function drawVertex(v, color = 'black', gradObject, withName, translate) {
 
         if (gradObject.withAxisVal) {
             let center = getCenterPoint(new Point(x1, y1), new Point(x2, y2));
-            let text = String((xAxis) ? v.x : v.y);
+            let text = String(Math.floor((xAxis) ? v.x : v.y));
             drawTextWithBackground(text, center, 'rgb(246, 242, 242)', 'black');
         }
     }

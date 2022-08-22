@@ -5,7 +5,7 @@ let helpPage = 0;
 export const HELP_MESSAGES = [
     { 
         header: "Graph Visualizer", 
-        message: ["The english vocab is, apprarently, too small to name this 'graph' separate from the 'graph' in Math. ",
+        message: ['The english vocabulary is, apprarently, too large to name this idea separate from the "graph" in Math. ',
         "So what on earth is the programmer's graph?</br></br>Feel free to skip this tutorial if you'd like to just ",
         "go for it, and to click on the title."].join(''),
         image: './src/resources/favicon.png' // location starts at index.html
@@ -35,7 +35,7 @@ export const HELP_MESSAGES = [
         header: "Searching", 
         message: ["A main advantage of graphs is their searching ability throughout all the connections.</br></br>",
         "Users can <i>search</i> the graph for a path using the <span class=buttonText>Find Paths</span> ",
-        "button.</br></br>All the algorithms use 'Starting From' points, and most have 'Searching For' ",
+        "section.</br></br>All the algorithms use 'Starting From' points, and most have 'Searching For' ",
         "points, which can be typed in the appropriate inputs. </br></br>",
         "The searching algorithm to use can be selected in the ending dropdown of the <span class=buttonText>",
         "Find Paths</span> section."].join(''),
@@ -123,8 +123,8 @@ export function loadCurrentHelpPage() {
     if (HELP_MESSAGES[helpPage].image != '') {
         
         if (!img) img = document.createElement('img');
-        helpMessage.appendChild(img);
         img.src = HELP_MESSAGES[helpPage].image;
+        helpMessage.appendChild(img);
     }
 }
 
@@ -133,7 +133,7 @@ document.getElementById('tutorial').addEventListener("click", () => {
     loadCurrentHelpPage();
     document.getElementById('previous').innerHTML = "Skip";
     document.getElementById('next').innerHTML = "Next";
-    document.getElementById('helpMessage').style.display = 'block';
+    document.getElementById('helpMessage').style.display = 'flex';
 });
 
 document.getElementById('closeTutorial').addEventListener("click", closeHelpMessages);

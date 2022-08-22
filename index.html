@@ -19,15 +19,6 @@
                   </button>
                   <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                     <div class="navbar-nav">
-                      <div class="nav-item dropdown">
-                        <button class="navbar-btn btn btn-primary dropdown-toggle text-light disabled me-2" type="button" id="maps" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                          Change Map
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="maps">
-                          <a class="dropdown-item" href="#" id="us">U.S.</a>
-                          <a class="dropdown-item" href="#" id="binary">Binary Tree</a>
-                        </div>
-                      </div>
                       <button class="btn btn-primary active" type="button" id="findPaths" data-toggle="collapse" data-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="true" aria-label="Toggle navigation" disabled> Find Paths </button>
                       <div class="collapse show" id="navbarToggleExternalContent">
                         <div class="findPathItems p-1">
@@ -41,7 +32,7 @@
                             </div>
                             <input type="text" id="searchingFor" class="form-control" min-width="50" value="Houston" aria-label="Searching For:">
                             <div class="dropdown" id="searchTypeDropdown">
-                              <button class="navbar-btn btn btn-primary btn-sm dropdown-toggle text-light me-2" type="button" id="searchType" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Depth-First Search</button>
+                              <button class="navbar-btn btn btn-success btn-sm dropdown-toggle text-light me-2" type="button" id="searchType" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Depth-First Search</button>
                               <div class="dropdown-menu" id="searchTypeDropdownMenu" aria-labelledby="searchType">
                                 <a class="dropdown-item" href="#" id="byDepth">Depth-First Search</a>
                                 <a class="dropdown-item" href="#" id="byBreadth">Breadth-First Search</a>
@@ -51,6 +42,15 @@
                             </div>
                             <button class="btn btn-secondary btn-sm me-2" type="button" id="search" disabled> Search </button>
                           </div>
+                        </div>
+                      </div>
+                      <div class="nav-item dropdown">
+                        <button class="navbar-btn btn btn-primary dropdown-toggle text-light disabled me-2" type="button" id="maps" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Change Map
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="maps">
+                          <a class="dropdown-item" href="#" id="us">U.S.</a>
+                          <a class="dropdown-item" href="#" id="binary">Binary Tree</a>
                         </div>
                       </div>
                       <div class="nav-item dropdown">
