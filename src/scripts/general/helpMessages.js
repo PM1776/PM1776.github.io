@@ -5,15 +5,17 @@ let helpPage = 0;
 export const HELP_MESSAGES = [
     { 
         header: "Graph Visualizer", 
-        message: ['The english vocabulary is, apprarently, too large to name this idea separate from the "graph" in Math. ',
-        "So what on earth is the programmer's graph?</br></br>Feel free to skip this tutorial if you'd like to just ",
-        "go for it, and to click on the title."].join(''),
+        message: [
+            "While Math and computers often go together, this theory is so different from the ",
+            '"graph" in Math as the naming of it perhaps suggests, permiting rather incredibly ',
+            "helpful holders of and capabilities with data. So what on earth is this graph theory?</br></br>",
+            "Feel free to skip this tutorial if you'd like to just go for it, and to click on the title."].join(''),
         image: './src/resources/favicon.png' // location starts at index.html
     },
     { 
         header: "The Graph Programmers Know and Love", 
         message: ["A graph is essentially a list of objects with each object containing its own ",
-        "list of objects for some kind of connection in the graph. Facebook uses them to hold people's data and ",
+        "list of objects for some kind of connection in the original list. Facebook uses them to hold people's data and ",
         "who they're friends with, and Google Maps uses them storing locations and locations' neighboring ",
         "locations."].join(''),
         image: './src/resources/graph rep.png'
@@ -28,37 +30,41 @@ export const HELP_MESSAGES = [
         "hold down on a point for half a second and drag from it to add a connection to it.") + "</br></br>",
         "<i>Zooming</i> - A user can " + ((!MOBILE) ? "use the mouse wheel" : "tap with two fingers") + 
         " to zoom in and out.</br></br>",
-        "Users can additionally load pre-made maps using the <span class=buttonText>Change Map</span> dropdown."].join(''),
+        "Users can additionally load pre-made maps using the <span class='buttonDisplay main'>Change Map</span> ",
+        "dropdown."].join(''),
         image: ''
     },
     { 
         header: "Searching", 
         message: ["A main advantage of graphs is their searching ability throughout all the connections.</br></br>",
-        "Users can <i>search</i> the graph for a path using the <span class=buttonText>Find Paths</span> ",
-        "section.</br></br>All the algorithms use 'Starting From' points, and most have 'Searching For' ",
-        "points, which can be typed in the appropriate inputs. </br></br>",
-        "The searching algorithm to use can be selected in the ending dropdown of the <span class=buttonText>",
-        "Find Paths</span> section."].join(''),
+        "Users can <i>search</i> the graph for a path using the <span class='buttonDisplay main'>Find Paths",
+        "</span> ",
+        "section.</br></br>",
+        "All the algorithms use a <span class='buttonDisplay input'>Starting From:</span> point, and most ",
+        "have a <span class='buttonDisplay input'>Searching For:</span> point, which can be typed in the ",
+        "appropriate inputs. </br></br>",
+        "The searching algorithm to use can be selected in the ending <span class='buttonDisplay algorithm'>",
+        "dropdown</span> of the <span class='buttonDisplay main'>Find Paths</span> section."].join(''),
         image: ''
     },
     { 
         header: "The Algorithm Cast", 
-        message: ["<font size=2><i>Depth-First Search</i> - This algorithm searches from a point by going through all the ",
-        "connections one of its 'neighbors' has before going on to its second 'neighbor', digging all ",
+        message: ["<font size=2><span class='buttonDisplay algorithm'>Depth-First Search</span> - This algorithm searches from a point by going through all the ",
+        "connections one of its 'neighbors' has before going on to its second 'neighbor', digging first all ",
         "the way to the end of one neighboring line until there are no more.</br></br>",
-        "<i>Breadth-First Search</i> - This algorithm searches by going through all a point's 'neighbors' ",
+        "<span class='buttonDisplay algorithm'>Breadth-First Search</span> - This algorithm searches by going through all a point's 'neighbors' ",
         "before going on to its neighbors' neighbors. The fewer the connections to a searching point, the ",
         "quicker it'll be found.</br></br>",
-        "<i>Shortest Entirety Path</i> - This algorithm determines the smallest distance in traveling to every ",
-        "point, though not necessarily linearly.</br>",
-        "<i>Shortest Path</i> - This algorithm guarantees the shortest path from starting point to searching-for ",
+        "<span class='buttonDisplay algorithm'>Shortest Entirety Path</span> - This algorithm determines the smallest distance in traveling to every ",
+        "point, though not necessarily linearly.</br></br>",
+        "<span class='buttonDisplay algorithm'>Shortest Path</span> - This algorithm guarantees the shortest path from starting point to searching-for ",
         "point."].join(''),
         image: ''
     },
     { 
         header: "Additional Features", 
         message: ["<i>Sorting</i> - Users can additionally sort the points based on their 'X' or 'Y' co-ordinates ",
-        "using the <span class=buttonText>Sort</span> dropdown, which uses the Merge Sort algorithm.</br></br>",
+        "using the <span class='buttonDisplay main'>Sort</span> dropdown, which uses the Merge Sort algorithm.</br></br>",
         "<i>Closest Pair</i> - A last feature includes finding the closest pair of points in the graph, ",
         "which visualizes the 'Divide and Conquer' method."].join(''),
         image: ''

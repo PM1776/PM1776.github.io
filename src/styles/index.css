@@ -251,10 +251,23 @@ img {
     position: absolute;
 }
 
-.buttonText { 
+.main { 
     background-color: #0d6efd;
-    border-radius: 3px;
     color: white;
+}
+
+.input {
+    background-color: lightgray;
+    color: black;
+}
+
+.algorithm {
+    background-color: #05bc66;
+    color: white;
+}
+
+.buttonDisplay {
+    border-radius: 3px;
     padding: 3px;
     display: inline-block;
 }
