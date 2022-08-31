@@ -1,5 +1,5 @@
 # Graph Visualizer
-Graphs are incredibly helpful in the development world, providing capabilities such as holding the connections in a list and searching through those connections in ways only limited to creativity, all while allowing the same capabilities of the list as an Array. I built this application to learn about the graph data structure, and I hope it's as visualizing of graph capabilities as it was for me in building it. It is additionally mobile friendly. </br></br>
+Graphs are incredibly helpful in the development world, providing capabilities such as holding the connections in a list and searching through those connections in ways only limited to one's creativity, all while allowing the same capabilities of the list as an Array. I built this application to learn about the graph data structure, and I hope it's as visualizing of graph capabilities as it was for me in building it. It is additionally mobile friendly. </br></br>
 The running application can be found here: https://paulmeddaugh.github.io/Graph-Visualizer/</br>
 The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualizer
 
