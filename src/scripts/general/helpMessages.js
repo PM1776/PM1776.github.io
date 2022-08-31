@@ -6,16 +6,16 @@ export const HELP_MESSAGES = [
     { 
         header: "Graph Visualizer", 
         message: [
-            "While Math and computers often go together, this theory is so different from the ",
-            '"graph" in Math as the naming of it perhaps suggests, permiting rather incredibly ',
-            "helpful holders of and capabilities with data. So what on earth is this graph theory?</br></br>",
+            'Perhaps the fact that this theory has the same name as the typical Math "graph" indicates ',
+            "how different it is, rather being a method of how connections in a list can be helpfully searched throughout. ",
+            "So what on earth is this graph theory?</br></br>",
             "Feel free to skip this tutorial if you'd like to just go for it, and to click on the title."].join(''),
         image: './src/resources/favicon.png' // location starts at index.html
     },
     { 
         header: "The Graph Programmers Know and Love", 
-        message: ["A graph is essentially a list of objects with each object containing its own ",
-        "list of objects for some kind of connection in the original list. Facebook uses them to hold people's data and ",
+        message: ["A graph is essentially a list of objects with each object provided its own ",
+        "list for some kind of connection in the original list. Facebook uses them to store 'people' and ",
         "who they're friends with, and Google Maps uses them storing locations and locations' neighboring ",
         "locations."].join(''),
         image: './src/resources/graph rep.png'
