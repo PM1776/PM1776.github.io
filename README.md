@@ -1,7 +1,10 @@
 # Graph Visualizer
-Graph theory is incredibly helpful in the development world, providing capabilities such as holding the connections within a list and searching through those connections in ways only limited to one's creativity, all while allowing the same capabilities of the list in an Array. I built this application to learn about the graph data structure, and I hope it's as visualizing of graph capabilities as it was for me in building it. It is additionally mobile friendly. </br></br>
+Graphs are incredibly helpful in the development world, providing capabilities such as holding the connections in a list and searching through those connections in ways only limited to creativity, all while allowing the same capabilities of the list as an Array. I built this application to learn about the graph data structure, and I hope it's as visualizing of graph capabilities as it was for me in building it. It is additionally mobile friendly. </br></br>
 The running application can be found here: https://paulmeddaugh.github.io/Graph-Visualizer/</br>
 The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualizer
+
+## Maps
+This application has options to load a map of certain locations in the US or a small binary tree map.
 
 ## Supported Algorithm
 
@@ -19,6 +22,3 @@ The Trello board can be found here: https://trello.com/b/0vXmvjiV/graph-visualiz
 <b>Merge Sort</b> - Sorts the points in the graph by either their 'X' or 'Y' co-ordinate through spliting and sorting the list in sub-sections, and merging those sub-sections.
 
 <b>Closest Pair of Points</b> - Finds the closest pair in the graph by determining the closest pair in smaller sections and merging those sub-sections (Divide and Conquer method).
-
-## Maps
-This application additionally has options to load a map of certain locations in the U.S. or a small binary tree.
