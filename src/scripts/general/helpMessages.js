@@ -6,58 +6,57 @@ export const HELP_MESSAGES = [
     { 
         header: "Graph Visualizer", 
         message: [
-            'Perhaps the fact that this theory has the same name as the typical Math "graph" indicates ',
-            "how different it is, rather being a method of how connections in a list can be helpfully searched throughout. ",
-            "So what on earth is this graph theory?</br></br>",
-            "Feel free to skip this tutorial if you'd like to just go for it, and to click on the title."].join(''),
+            'No, this is not a replacement of your $200 graphing calculator. While utilizing the same name, ',
+            "this theory is rather about how the connections to an object can be stored and searched in electronic data. ",
+            "So what on earth is this theory?</br></br>",
+            "Feel free to skip this tutorial if you'd like, and to click on the title."].join(''),
         image: './src/resources/favicon.png' // location starts at index.html
     },
     { 
         header: "The Graph Programmers Know and Love", 
         message: ["A graph is essentially a list of objects with each object provided its own ",
         "list for some kind of connection in the original list. Facebook uses them to store 'people' and ",
-        "who they're friends with, and Google Maps uses them storing locations and locations' neighboring ",
+        "who they're friends with, and Google Maps uses them in storing locations and their neighboring ",
         "locations."].join(''),
         image: './src/resources/graph rep.png'
     },
     { 
         header: "Customizing Graph Visualizer", 
-        message: ["<i>Adding and Removing Points</i> - A user can customize the graph by simply ",
-        ((!MOBILE) ? "clicking to add a point and right-clicking to remove one." : 
-                    "tapping to add a point, and double tapping to remove one.") + "</br></br>",
-        "<i>Adding Connections</i> - You can also ",
-        ((!MOBILE) ? "begin dragging from a point to add a connection to it." : 
+        message: ["<i>Adding and Removing Points</i> - A user can ",
+        ((!MOBILE) ? "click to add a new point, and right-click to remove one." : 
+                    "tap to add a new point, and double tap to remove one.") + "</br></br>",
+        "<i>Adding Connections</i> - Users can also ",
+        ((!MOBILE) ? "begin dragging from one point to another, or to an open space to simultaneously create a new point, to add a connection between them." : 
         "hold down on a point for half a second and drag from it to add a connection to it.") + "</br></br>",
-        "<i>Zooming</i> - A user can " + ((!MOBILE) ? "use the mouse wheel" : "tap with two fingers") + 
+        "<i>Zooming</i> - A user can further " + ((!MOBILE) ? "use the mouse wheel" : "tap with two fingers") + 
         " to zoom in and out.</br></br>",
-        "Users can additionally load pre-made maps using the <span class='buttonDisplay main'>Change Map</span> ",
+        "Other pre-made maps can be loaded using the <span class='buttonDisplay main'>Change Map</span> ",
         "dropdown."].join(''),
         image: ''
     },
     { 
         header: "Searching", 
-        message: ["A main advantage of graphs is their searching ability throughout all the connections.</br></br>",
-        "Users can <i>search</i> the graph for a path using the <span class='buttonDisplay main'>Find Paths",
-        "</span> ",
-        "section.</br></br>",
-        "All the algorithms use a <span class='buttonDisplay input'>Starting From:</span> point, and most ",
-        "have a <span class='buttonDisplay input'>Searching For:</span> point, which can be typed in the ",
+        message: ["A main advantage of graphs is their efficient ability to search through objects' connections.</br></br>",
+        "Users can search the graph for a path using the <span class='buttonDisplay main'>Find Paths",
+        "</span> dropdown section.</br></br>",
+        "All algorithms use a <span class='buttonDisplay input'>Starting From:</span> point, and most ",
+        "use a <span class='buttonDisplay input'>Searching For:</span> point, which can be typed in the ",
         "appropriate inputs. </br></br>",
-        "The searching algorithm to use can be selected in the ending <span class='buttonDisplay algorithm'>",
-        "dropdown</span> of the <span class='buttonDisplay main'>Find Paths</span> section."].join(''),
+        "The algorithm to use can be selected at the ending <span class='buttonDisplay algorithm'>",
+        "dropdown</span> of the <span class='buttonDisplay main'>Find Paths</span> dropdown section."].join(''),
         image: ''
     },
     { 
         header: "The Algorithm Cast", 
-        message: ["<font size=2><span class='buttonDisplay algorithm'>Depth-First Search</span> - This algorithm searches from a point by going through all the ",
-        "connections one of its 'neighbors' has before going on to its second 'neighbor', digging first all ",
-        "the way to the end of one neighboring line until there are no more.</br></br>",
-        "<span class='buttonDisplay algorithm'>Breadth-First Search</span> - This algorithm searches by going through all a point's 'neighbors' ",
-        "before going on to its neighbors' neighbors. The fewer the connections to a searching point, the ",
+        message: ["<font size=2><span class='buttonDisplay algorithm'>Depth-First Search</span> - Searches through every ",
+        "connection to one of the 'neighbors' of the starting point before searching a second 'neighbor', digging first all ",
+        "the way to the end of one neighboring line of connections before searching another neighbor and its connections.</br></br>",
+        "<span class='buttonDisplay algorithm'>Breadth-First Search</span> - Searches all of the point's 'neighbors' ",
+        "before searching those neighbors' neighbors. The fewer the connections to the sought point, the ",
         "quicker it'll be found.</br></br>",
-        "<span class='buttonDisplay algorithm'>Shortest Entirety Path</span> - This algorithm determines the smallest distance in traveling to every ",
-        "point, though not necessarily linearly.</br></br>",
-        "<span class='buttonDisplay algorithm'>Shortest Path</span> - This algorithm guarantees the shortest path from starting point to searching-for ",
+        "<span class='buttonDisplay algorithm'>Shortest Entirety Path</span> - Determines the smallest distance to travel to every ",
+        "point, though not necessarily in a linear path.</br></br>",
+        "<span class='buttonDisplay algorithm'>Shortest Path</span> - Guarantees the shortest path from starting point to searching-for ",
         "point."].join(''),
         image: ''
     },

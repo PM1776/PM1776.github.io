@@ -251,25 +251,25 @@ img {
     position: absolute;
 }
 
-.main { 
+span.buttonDisplay { /* A class for representing a button in helpMessages.js */
+    border-radius: 3px;
+    padding: 3px;
+    display: inline-block;
+}
+
+.main { /* Type of .buttonDisplay for navBar button */
     background-color: #0d6efd;
     color: white;
 }
 
-.input {
-    background-color: lightgray;
+.input { /* Type of .buttonDisplay for an input in navBar */
+    background-color: #e9ecef;
     color: black;
 }
 
-.algorithm {
+.algorithm { /* Type of .buttonDisplay for algorithm dropdown */
     background-color: #05bc66;
     color: white;
-}
-
-.buttonDisplay {
-    border-radius: 3px;
-    padding: 3px;
-    display: inline-block;
 }
 
 #closeTutorial {

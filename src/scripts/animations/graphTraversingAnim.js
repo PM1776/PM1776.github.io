@@ -133,7 +133,7 @@ async function minimumSpanningTreeAnim (searchTree, graph) {
     drawVertices(graph.getVertices(), undefined, false, 'blue');
     await result;
     
-    showNotification("Smallest Distance Travelling to Every Point: <b>" + searchTree.getTotalWeight() + "</b>", 
+    showNotification("Smallest Distance To Travel To Every Point (Not Continuous): <b>" + searchTree.getTotalWeight() + "</b>", 
         MESSAGE_TIME);
 }
 
