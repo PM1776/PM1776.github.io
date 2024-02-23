@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/paulmeddaugh/paulmeddaugh.github.io#readme",
   "devDependencies": {
-    "webpack": "^5.72.1",
-    "webpack-cli": "^4.9.2"
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
   }
 }

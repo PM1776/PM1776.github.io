@@ -58,6 +58,7 @@ input[id='searchingFor'] {
 
 #graphView {
     box-sizing: border-box;
+    border-radius: 8px;
 }
 
 #canvasContainer {
@@ -205,9 +206,11 @@ canvas {
     height: 67%;
     background-color: white;
     padding: 5px;
-    border: 2px solid blue;
-    display: flex;
+    border: 2px solid dimgrey;
+    border-radius: 8px;
+    display: none;
     flex-direction: column;
+
 }
 
 .helpHeader {
@@ -278,4 +281,24 @@ span.buttonDisplay { /* A class for representing a button in helpMessages.js */
     top: 14px;
     cursor: pointer;
     font: 10pt Arial;
+    width: 13px;
+    height: 13px;
+}
+
+#closeTutorial::before, #closeTutorial::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 15px;
+    transform-origin: center;
+    background-color: black;
+    translate: 5px -2px;
+}
+
+#closeTutorial::before {
+    rotate: 45deg;
+}
+
+#closeTutorial::after {
+    rotate: -45deg;
 }
